@@ -82,7 +82,7 @@ bool setup(BelaContext *context, void *userData)
     // now safe to use libpd_float()
     
     i2cTask = Bela_createAuxiliaryTask(readMPR121, 50, "bela-mpr121");
-    //encoderTask = Bela_createAuxiliaryTask(readEncoder, 50, "bela-encoder", context);
+    
     readIntervalSamples = context->audioSampleRate / readInterval;
     
     // Setup encoder
@@ -115,7 +115,9 @@ void render(BelaContext *context, void *userData)
 }
 
 void cleanup(BelaContext *context, void *userData)
-{ }
+{
+
+}
 
 // Auxiliary task to read the I2C board
 void readMPR121(void*)
@@ -134,19 +136,3 @@ void readMPR121(void*)
 #endif
     libpd_float("mpr121", mpr121.touched());
 }
-
-// Auxiliary task to read the encoder
-/*
-void readEncoder(void* arg)
-{
-    BelaContext* context = (BelaContext*)arg;
-    bool a = digitalRead(context, 0, kEncChA);
-    bool b = digitalRead(context, 0, kEncChB);
-    Encoder::Rotation rot = gEncoder.process(a, b);
-    
-    if(Encoder::NONE != rot) {
-        int position = gEncoder.get();
-        libpd_float("encoder_pos", (float)position);
-    }
-}
-*/
