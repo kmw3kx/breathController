@@ -876,7 +876,6 @@ bool setup(BelaContext *context, void *userData)
 #endif // BELA_LIBPD_TRILL
 #ifdef BELA_PD_CONTROL
 	belaPdControlSetup(); //This is our in to the setup() function.
-
 #endif // BELA_PD_CONTROL
 	return true;
 }
