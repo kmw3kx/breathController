@@ -1,0 +1,8 @@
+#N canvas 128 128 450 300 12;
+#X obj 216 94 mpkccknob, f 15;
+#X obj 122 169 s n_suck;
+#X obj 195 173 s n_blow;
+#X obj 267 175 s portamento;
+#X connect 0 0 1 0;
+#X connect 0 1 2 0;
+#X connect 0 2 3 0;
