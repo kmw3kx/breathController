@@ -205,7 +205,7 @@ float* gOutBuf;
 static std::vector<Midi*> midi;
 std::vector<std::string> gMidiPortNames;
 int gMidiVerbose = 1;
-const int kMidiVerbosePrintLevel = 0; //MODIFICATION: to hopefully stop printing from overloading the CPU when sending a lot of MIDI messages. Changed: 1->0
+const int kMidiVerbosePrintLevel = 2; //MODIFICATION: to hopefully stop printing from overloading the CPU when sending a lot of MIDI messages. Changed: 1->2
 
 void dumpMidi()
 {

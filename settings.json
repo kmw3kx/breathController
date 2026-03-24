@@ -1,7 +1,7 @@
 {
-  "fileName": "test.pd",
+  "fileName": "render.cpp",
   "CLArgs": {
-    "-p": "16",
+    "-p": "32",
     "-C": "8",
     "-B": "16",
     "-N": "1",

@@ -5,8 +5,12 @@
 #X obj 150 156 change;
 #X obj 136 218 outlet;
 #X obj 139 76 div 2;
+#X obj 57 7 loadbang;
+#X msg 57 31 0;
 #X connect 0 0 5 0;
 #X connect 2 0 3 0;
 #X connect 3 0 1 0;
 #X connect 3 0 4 0;
 #X connect 5 0 2 0;
+#X connect 6 0 7 0;
+#X connect 7 0 5 0;
