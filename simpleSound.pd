@@ -1,4 +1,4 @@
-#N canvas 272 708 450 300 12;
+#N canvas 311 441 431 444 12;
 #X obj 175 87 inlet~;
 #X obj 297 94 inlet~;
 #X text 118 88 suck;
@@ -15,7 +15,6 @@
 #X obj 208 203 cos~;
 #X connect 0 0 11 1;
 #X connect 1 0 12 1;
-#X connect 6 0 5 0;
 #X connect 7 0 6 0;
 #X connect 9 0 10 0;
 #X connect 10 0 11 0;
