@@ -21,8 +21,8 @@ int sensorValue[NUM_TOUCH_PINS];
 
 // Encoder setup
 Encoder gEncoder;
-unsigned int kEncChA = 0;
-unsigned int kEncChB = 1;
+unsigned int kEncChA = 1;
+unsigned int kEncChB = 0;
 unsigned int kEncChBtn = 2;
 unsigned int kDebouncingSamples = 15;
 Encoder::Polarity polarity = Encoder::ANY;
