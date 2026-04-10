@@ -12,7 +12,7 @@
 #X obj 268 372 threshold~ 0.182 0 0.182 0;
 #X text 289 347 measured min was 0.1824;
 #X text -88 468 subtract from measured average: 0.1833;
-#X obj 271 484 *~;
+#X obj 249 518 *~;
 #X obj 428 514 *~;
 #X text 315 325 Suck;
 #X text 574 328 Blow;
