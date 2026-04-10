@@ -1,0 +1,14 @@
+#N canvas 507 282 1301 752 12;
+#X declare -path commonAbstract;
+#X obj 175 87 inlet~;
+#X obj 278 77 inlet~;
+#X text 127 86 suck;
+#X text 239 81 blow;
+#X text 11 91 pitch;
+#X obj 62 679 outlet~;
+#X obj 60 87 inlet~;
+#X obj 452 100 declare -path commonAbstract;
+#X obj 546 677 output~;
+#X obj 561 457 oscilloscope;
+#A saved 0 400 1 -1;
+#X text 51 31 Bob Kammauff (kmw3kx) 4/9/26 I wanna make a sound that I'd actually want to play;
