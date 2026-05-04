@@ -2,12 +2,11 @@
 
 This is my repository for my breath controller that I am working on this semester (and hopefully beyond)
 
-Submit on Canvas:
-Your _main.pd patch and any other Pd patches needed to make your instrument work.
-A photo of your Bela and breadboard circuit
-A short text file or pdf document describing:
-What the instrument does, how it works.
-Anything interesting you did or learned while making the instrument
+>Project Report:  Due Wed May 6 at 11pm on Canvas.
+>Submit the following materials:
+> - Your Pd code, and any resources used in the Bela project.
+> - A video of your instrument being performed.
+> - A report, describing how your instrument works, what your design goals were, what you learned from building it, and what you might change or do differently if you built it again. The report should include a description and diagrams of the user parameters, the synthesis algorithm, and, importantly, the mapping.
 
 ## Work Log
 
