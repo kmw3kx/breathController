@@ -2,9 +2,22 @@
 
 This is my personal repository for my wind controller project in development to catalog my work.
 
+## Table of Contents
+
+- [Prospectus Submission for STS 4500, Summer 2026](#Prospectus-Submission-for-STS-4500,-Summer-2026)
+- [Summer 2026 Personal Work](#Summer-2026-Personal-Work)
+- [Submission for Final Project, MUSI 4610, Spring 2026](#Submission-for-Final-Project,-MUSI-4610,-Spring-2026)
+- [Work Log](#Work-Log)
+
 ## Prospectus Submission for STS 4500, Summer 2026
 
-The PDF can be found under `/media` or by clicking [here](media/ProspectusFINAL_Kammauff.pdf)
+The PDF can be found under `/media` or by clicking [here](media/ProspectusFINAL_Kammauff.pdf
+
+The Prospectus is a graduation requirement for the engineering school @ UVA, but doesn't guarantee that the corresponding capstone will be taken on, due to it being a group project. I am hopeful, and I will know come fall.
+
+## Summer 2026 Personal Work
+
+The project is continuing development during these summer weeks between semesters and other personal projects. I am learning KiCAD in order to develop better PCB's for the components. Development is being moved over to the daisy seed microcontroller, and will consist of multiple modules, instead of the single board from the last iteration. Currently, I am waiting on the Wilson Maker Space mill to be back up in 'early July' before any more production continues with this project. It has proven to be a large undertaking, but I am hoping to have a new prototype come fall. 
 
 ## Submission for Final Project, MUSI 4610, Spring 2026
 This project was inspired by [this post on hackaday.io](https://hackaday.io/project/25756-diy-evi-style-windcontroller)  that created a EVI-style breath controller. As such, I use a lot of the same components that he does. 
@@ -12,16 +25,16 @@ This project was inspired by [this post on hackaday.io](https://hackaday.io/proj
 ![CAD Rendering of the project](media/image.png)
 
 The basic premise of the instrument is to give brass players access to easily controlling electronic sounds. It uses a pressure sensor connected to a lead pipe in order to determine the breath pressure of the player. The two potentiometers can be used to adjust how the breath signal is interpreted; the one on the left adjusts the cutoff threshold, and the one on the right controls the power mapping. It also has a 'valve block' to allow the player to use the same fingering system developed for brass instruments (1st Valve moves the pitch down a whole step, 2nd Valve down a half step, and 3rd Valve down a minor 3rd). However, a problem instantly arrives: brass musicians usually rely on playing in the harmonic partials of a physical tube in order to expand the range greater than just the tritone provided. So, we need additional controls. I decided on using an encoder as a way to toggle between octaves with a easy motion that still provides a clear source of feedback (clicking with each increment). This worked, but it still wasn't fully chromatic. I experimented with adding a 4th and 5th valve (operated by the pinky and thumb respectively, which lowered and raised the pitch by a 4th), which allows the instrument to be fully chromatic (and have multiple alternate fingerings to allow for more flexibility in tricky passages across the octave split), but this experimentation was still very clunky, since most brass instruments with more than 3 valves start to become less standard and more a product of tuning constraints; most brass players are the most comfortable just using the first 3 valves. So, I decided on a system where the encoder actually start alternating between Bb and F in octaves; the 2nd and 3rd harmonic partial that brass normally starts in. This allows the instrument to be fully chromatic, yet still have the octave shifting feature where each note in any octave is played with the same fingering.
-## Mapping
+### Mapping
 ![Mapping](media/image-2.png)
-## Wiring
+### Wiring
 ![Front of breakout board](media/20260506_155120.jpg)
 
 ![back](media/20260506_155137.jpg)
 
 The valves are a combination of stranded core soldered to solid core. I used lock washers to ensure a very sturdy connection between the stranded wire and the bolts I was using for the capacitive touch valves. They are plugged into their corresponding number on the MPR121 (1-5), where 5 is the thumb. The encoder plugs in directly to the 5 female sockets on the right, with the knob facing away. The breath sensor is plugged into the ground port on the MPR, and the white wire side of the 4 female sockets, w/ V_in going to the inner one, and V_out to the outer. If the bite sensor is to be used, it is plugged into the upper 2 sockets; polarity doesn't matter. 
 
-## Sound
+### Sound
 The sound of the instrument can be swapped out in the code by attaching the frequency and breath lines into where `BrassLead` currently is. `simpleSound.pd` and `SubSynth.pd` are alternative sound modules. 
 
 `BrassLead.pd` uses a simple FM algorithm to create a sound that increases in brightness w/ respect to breath input.
@@ -29,10 +42,10 @@ The sound of the instrument can be swapped out in the code by attaching the freq
 
 You can find a link to a video of the instrument being played [here.](https://youtube.com/shorts/NqKi1nieuh8)
 
-## CAD
+### CAD
 All CAD files that I used while developing this prototype can be found [here.](https://myuva-my.sharepoint.com/:f:/g/personal/kmw3kx_virginia_edu/IgA0IbZReZuJRZx14ltvIYuoAS6oU6uEX7or4lSNlIzHq_s?e=NXnAmO)
 
-## Future Improvements
+### Future Improvements
 There are a ton of improvements that are possible with this instrument and implementation that I am planning on pursuing looking forward:
 
 - Added Features
