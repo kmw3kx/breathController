@@ -1,8 +1,13 @@
 # Breath Controller
 
-This is my repository for my breath controller that I am working on this semester (and hopefully beyond). 
+This is my personal repository for my wind controller project in development to catalog my work.
 
-This project was inspired by [this post on hackaday.io](https://hackaday.io/project/25756-diy-evi-style-windcontroller) which used some sort of teensy (that's no longer available) to create a EVI-style breath controller. As such, I use a lot of the same components that he does, but now on a Bela architecture, plus some other revisions (namely, an encoder for the octave selection). 
+## Prospectus Submission for STS 4500, Summer 2026
+
+
+
+## Submission for Final Project, MUSI 4610, Spring 2026
+This project was inspired by [this post on hackaday.io](https://hackaday.io/project/25756-diy-evi-style-windcontroller)  that created a EVI-style breath controller. As such, I use a lot of the same components that he does. 
 
 ![CAD Rendering of the project](media/image.png)
 
