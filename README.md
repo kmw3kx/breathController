@@ -4,14 +4,14 @@ This is my personal repository for my wind controller project in development to 
 
 ## Table of Contents
 
-- [Prospectus Submission for STS 4500, Summer 2026](#prospectus-submission-for-sts-4500,-summer-2026)
+- [Prospectus Submission for STS 4500, Summer 2026](#prospectus-submission-for-sts-4500-summer-2026)
 - [Summer 2026 Personal Work](#summer-2026-personal-work)
-- [Submission for Final Project, MUSI 4610, Spring 2026](#submission-for-final-project,-musi-4610,-spring-2026)
-    -[Mapping](#mapping)
-    -[Wiring](#wiring)
-    -[Sound](#sound)
-    -[CAD](#cad)
-    -[Future Improvements](#future-improvements)
+- [Submission for Final Project, MUSI 4610, Spring 2026](#submission-for-final-project-musi-4610,-spring-2026)
+    - [Mapping](#mapping)
+    - [Wiring](#wiring)
+    - [**Sound**](#sound)
+    - [CAD](#cad)
+- [Future Improvements](#future-improvements)
 - [Work Log](#work-Log)
 
 ## Prospectus Submission for STS 4500, Summer 2026
