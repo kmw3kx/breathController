@@ -4,7 +4,7 @@ This is my personal repository for my wind controller project in development to 
 
 ## Prospectus Submission for STS 4500, Summer 2026
 
-
+The PDF can be found under `/media` or by clicking [here](media/ProspectusFINAL_Kammauff.pdf)
 
 ## Submission for Final Project, MUSI 4610, Spring 2026
 This project was inspired by [this post on hackaday.io](https://hackaday.io/project/25756-diy-evi-style-windcontroller)  that created a EVI-style breath controller. As such, I use a lot of the same components that he does. 
