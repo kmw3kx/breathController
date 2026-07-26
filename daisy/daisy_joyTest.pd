@@ -1,7 +1,4 @@
 #N canvas 827 239 734 565 12;
-#X obj 198 316 print joy;
-#X obj 275 275 loadbang;
-#X obj 275 301 metro 100;
 #X obj 159 216 r breath @hv_param;
-#X connect 1 0 2 0;
-#X connect 3 0 0 0;
+#X obj 198 316 print breath;
+#X connect 0 0 1 0;

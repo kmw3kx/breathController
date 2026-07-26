@@ -9,27 +9,27 @@
     "channels": 2
   },
 	"components": {
-		"capIn1": {
+		"capin1": {
 			"component": "GateIn",
 			"pin": 13
 		},
-        "capOut1": {
+        "capout1": {
 			"component": "GateOut",
 			"pin": 9
 		},
-        "capIn2": {
+        "capin2": {
 			"component": "GateIn",
 			"pin": 12
 		},
-        "capOut2": {
+        "capout2": {
 			"component": "GateOut",
 			"pin": 14
 		},
-        "capIn3": {
+        "capin3": {
 			"component": "GateIn",
 			"pin": 11
 		},
-        "capOut3": {
+        "capout3": {
 			"component": "GateOut",
 			"pin": 10
 		},
@@ -37,11 +37,11 @@
 			"component": "AnalogControl",
 			"pin": 15
 		},
-		"joyX": {
+		"joyx": {
 			"component": "AnalogControl",
 			"pin": 16
 		},
-        "joyY": {
+        "joyy": {
 			"component": "AnalogControl",
 			"pin": 17
 		},
