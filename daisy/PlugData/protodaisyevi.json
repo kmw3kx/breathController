@@ -1,0 +1,62 @@
+{
+	"name": "protodaisyevi",
+	"som": "seed",
+	"defines": {
+		"OOPSY_TARGET_HAS_MIDI_INPUT": 1
+	},
+	"display": {},
+	"audio": {
+    "channels": 2
+  },
+	"components": {
+		"capIn1": {
+			"component": "GateIn",
+			"pin": 13
+		},
+        "capOut1": {
+			"component": "GateOut",
+			"pin": 9
+		},
+        "capIn2": {
+			"component": "GateIn",
+			"pin": 12
+		},
+        "capOut2": {
+			"component": "GateOut",
+			"pin": 14
+		},
+        "capIn3": {
+			"component": "GateIn",
+			"pin": 11
+		},
+        "capOut3": {
+			"component": "GateOut",
+			"pin": 10
+		},
+		"breath": {
+			"component": "AnalogControl",
+			"pin": 15
+		},
+		"joyX": {
+			"component": "AnalogControl",
+			"pin": 16
+		},
+        "joyY": {
+			"component": "AnalogControl",
+			"pin": 17
+		},
+		"encoder": {
+			"component": "Encoder",
+			"pin": {
+				"a": 5,
+				"b": 4,
+				"click": 3
+			}
+		}
+	},
+	"aliases": {
+		"encswitch": "encoder_rise",
+		"enp": "encoder_press",
+		"press": "encoder_press"
+	}
+}
