@@ -17,7 +17,6 @@ This is my personal repository for my wind controller project in development to 
 ## Daisy EVI Progress, Summer 2026
 7/20/26 - I have been continuing development of this project in between taking classes and working at my summer internship. The current model is running off of a daisy microcontroller. I have also been developing a 3D-printed needle valve to be able to more finely adjust back pressure of the instrument. There have been thoughts of creating custom pcb's for this project, but I am thinking of first making a prototype before trying to generate something that could be easily recreated. Hence, I am also trying other methods of fabrication beyond 3D printing, such as vacuum thermal forming, woodworking, and perfboard. I am also pivoting from an fsr to using a joystick attached to the mouthpiece, as there are issues with 3D printing food-safe mouthpieces.
 
-
 ## Prospectus Submission for STS 4500, Summer 2026
 
 The PDF can be found under `/media` or by clicking [here](media/ProspectusFINAL_Kammauff.pdf
