@@ -2,8 +2,8 @@
 	"name": "protodaisyevi",
 	"som": "seed",
 	"defines": {
-		"OOPSY_TARGET_HAS_MIDI_INPUT": 1
-	},
+		"HAS_MIDI": 1
+    },
 	"display": {},
 	"audio": {
     "channels": 2
