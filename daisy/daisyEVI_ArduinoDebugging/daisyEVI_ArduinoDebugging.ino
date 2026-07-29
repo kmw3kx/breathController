@@ -8,7 +8,7 @@
 // -----------------------------
 
 // Analog sensors
-const int analogPins[3] = {A0, A2, A3}; // breath & joy
+const int analogPins[3] = {A1, A2, A3}; // breath & joy
 
 // Capacitive sensors (each uses 2 pins: send + receive)
 struct CapPins {

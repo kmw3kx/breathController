@@ -35,15 +35,7 @@
 		},
 		"breath": {
 			"component": "AnalogControl",
-			"pin": 15
-		},
-		"joyx": {
-			"component": "AnalogControl",
 			"pin": 16
-		},
-        "joyy": {
-			"component": "AnalogControl",
-			"pin": 17
 		},
 		"encoder": {
 			"component": "Encoder",
