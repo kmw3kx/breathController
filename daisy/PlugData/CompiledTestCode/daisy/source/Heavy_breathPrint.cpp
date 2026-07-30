@@ -97,7 +97,7 @@ HvTable *Heavy_breathPrint::getTableForHash(hv_uint32_t tableHash) {
 void Heavy_breathPrint::scheduleMessageForReceiver(hv_uint32_t receiverHash, HvMessage *m) {
   switch (receiverHash) {
     case 0x477CB2C4: { // breath
-      mq_addMessageByTimestamp(&mq, m, 0, &cReceive_1XEOuUxW_sendMessage);
+      mq_addMessageByTimestamp(&mq, m, 0, &cReceive_RfnWOUVz_sendMessage);
       break;
     }
     default: return;
@@ -137,7 +137,7 @@ int Heavy_breathPrint::getParameterInfo(int index, HvParameterInfo *info) {
  */
 
 
-void Heavy_breathPrint::cReceive_1XEOuUxW_sendMessage(HeavyContextInterface *_c, int letIn, const HvMessage *m) {
+void Heavy_breathPrint::cReceive_RfnWOUVz_sendMessage(HeavyContextInterface *_c, int letIn, const HvMessage *m) {
   cPrint_onMessage(_c, m, "print");
 }
 

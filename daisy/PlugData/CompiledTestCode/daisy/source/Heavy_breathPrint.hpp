@@ -76,7 +76,7 @@ class Heavy_breathPrint : public HeavyContext {
 
 
   // static sendMessage functions
-  static void cReceive_1XEOuUxW_sendMessage(HeavyContextInterface *, int, const HvMessage *);
+  static void cReceive_RfnWOUVz_sendMessage(HeavyContextInterface *, int, const HvMessage *);
 
   // objects
 };

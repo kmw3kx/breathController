@@ -1,0 +1,280 @@
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccEWwSRE.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 28, 1
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 2
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"HvUtils.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.text.hv_string_to_hash,"ax",%progbits
+  17              		.align	1
+  18              		.p2align 2,,3
+  19              		.global	hv_string_to_hash
+  20              		.arch armv7e-m
+  21              		.syntax unified
+  22              		.thumb
+  23              		.thumb_func
+  24              		.fpu fpv5-d16
+  26              	hv_string_to_hash:
+  27              	.LVL0:
+  28              	.LFB345:
+  29              		.file 1 "HvUtils.c"
+   1:HvUtils.c     **** /**
+   2:HvUtils.c     ****  * Copyright (c) 2014-2018 Enzien Audio Ltd.
+   3:HvUtils.c     ****  *
+   4:HvUtils.c     ****  * Permission to use, copy, modify, and/or distribute this software for any
+   5:HvUtils.c     ****  * purpose with or without fee is hereby granted, provided that the above
+   6:HvUtils.c     ****  * copyright notice and this permission notice appear in all copies.
+   7:HvUtils.c     ****  *
+   8:HvUtils.c     ****  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+   9:HvUtils.c     ****  * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  10:HvUtils.c     ****  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  11:HvUtils.c     ****  * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  12:HvUtils.c     ****  * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  13:HvUtils.c     ****  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  14:HvUtils.c     ****  * PERFORMANCE OF THIS SOFTWARE.
+  15:HvUtils.c     ****  */
+  16:HvUtils.c     **** 
+  17:HvUtils.c     **** #include "HvUtils.h"
+  18:HvUtils.c     **** 
+  19:HvUtils.c     **** hv_uint32_t hv_string_to_hash(const char *str) {
+  30              		.loc 1 19 48 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  20:HvUtils.c     ****   // this hash is based MurmurHash2
+  21:HvUtils.c     ****   // http://en.wikipedia.org/wiki/MurmurHash
+  22:HvUtils.c     ****   // https://sites.google.com/site/murmurhash/
+  23:HvUtils.c     ****   static const hv_uint32_t n = 0x5bd1e995;
+  34              		.loc 1 23 3 view .LVU1
+  24:HvUtils.c     ****   static const hv_int32_t r = 24;
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccEWwSRE.s 			page 2
+
+
+  35              		.loc 1 24 3 view .LVU2
+  25:HvUtils.c     **** 
+  26:HvUtils.c     ****   if (str == NULL) return 0;
+  36              		.loc 1 26 3 view .LVU3
+  19:HvUtils.c     ****   // this hash is based MurmurHash2
+  37              		.loc 1 19 48 is_stmt 0 view .LVU4
+  38 0000 10B5     		push	{r4, lr}
+  39              		.cfi_def_cfa_offset 8
+  40              		.cfi_offset 4, -8
+  41              		.cfi_offset 14, -4
+  42              		.loc 1 26 6 view .LVU5
+  43 0002 0446     		mov	r4, r0
+  44 0004 48B3     		cbz	r0, .L1
+  27:HvUtils.c     **** 
+  28:HvUtils.c     ****   hv_uint32_t len = (hv_uint32_t) hv_strlen(str);
+  45              		.loc 1 28 3 is_stmt 1 view .LVU6
+  46              		.loc 1 28 35 is_stmt 0 view .LVU7
+  47 0006 FFF7FEFF 		bl	strlen
+  48              	.LVL1:
+  29:HvUtils.c     ****   hv_uint32_t x = len; // seed (0) ^ len
+  49              		.loc 1 29 3 is_stmt 1 view .LVU8
+  30:HvUtils.c     **** 
+  31:HvUtils.c     ****   while (len >= 4) {
+  50              		.loc 1 31 3 view .LVU9
+  51              		.loc 1 31 9 view .LVU10
+  52 000a 0328     		cmp	r0, #3
+  53 000c 35D9     		bls	.L10
+  54 000e A0F1040C 		sub	ip, r0, #4
+  55 0012 0246     		mov	r2, r0
+  56              	.LBB2:
+  32:HvUtils.c     **** #if HV_EMSCRIPTEN
+  33:HvUtils.c     ****     hv_uint32_t k = str[0] | (str[1] << 8) | (str[2] << 16) | (str[3] << 24);
+  34:HvUtils.c     **** #else
+  35:HvUtils.c     ****     hv_uint32_t k = *((hv_uint32_t *) str);
+  36:HvUtils.c     **** #endif
+  37:HvUtils.c     ****     k *= n;
+  57              		.loc 1 37 7 is_stmt 0 view .LVU11
+  58 0014 1A49     		ldr	r1, .L20
+  59 0016 2CF0030C 		bic	ip, ip, #3
+  60 001a 0CF1040C 		add	ip, ip, #4
+  61 001e A444     		add	ip, ip, r4
+  62              	.LVL2:
+  63              	.L4:
+  35:HvUtils.c     **** #endif
+  64              		.loc 1 35 5 is_stmt 1 view .LVU12
+  35:HvUtils.c     **** #endif
+  65              		.loc 1 35 17 is_stmt 0 view .LVU13
+  66 0020 54F8043B 		ldr	r3, [r4], #4
+  67              	.LVL3:
+  68              		.loc 1 37 5 is_stmt 1 view .LVU14
+  38:HvUtils.c     ****     k ^= (k >> r);
+  39:HvUtils.c     ****     k *= n;
+  40:HvUtils.c     ****     x *= n;
+  69              		.loc 1 40 7 is_stmt 0 view .LVU15
+  70 0024 01FB02F2 		mul	r2, r1, r2
+  71              	.LVL4:
+  37:HvUtils.c     ****     k ^= (k >> r);
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccEWwSRE.s 			page 3
+
+
+  72              		.loc 1 37 7 view .LVU16
+  73 0028 01FB03F3 		mul	r3, r1, r3
+  74              	.LVL5:
+  38:HvUtils.c     ****     k ^= (k >> r);
+  75              		.loc 1 38 5 is_stmt 1 view .LVU17
+  76              	.LBE2:
+  31:HvUtils.c     **** #if HV_EMSCRIPTEN
+  77              		.loc 1 31 9 is_stmt 0 view .LVU18
+  78 002c 6445     		cmp	r4, ip
+  79              	.LBB3:
+  38:HvUtils.c     ****     k ^= (k >> r);
+  80              		.loc 1 38 7 view .LVU19
+  81 002e 83EA1363 		eor	r3, r3, r3, lsr #24
+  82              	.LVL6:
+  39:HvUtils.c     ****     x *= n;
+  83              		.loc 1 39 5 is_stmt 1 view .LVU20
+  84              		.loc 1 40 5 view .LVU21
+  41:HvUtils.c     ****     x ^= k;
+  85              		.loc 1 41 5 view .LVU22
+  39:HvUtils.c     ****     x *= n;
+  86              		.loc 1 39 7 is_stmt 0 view .LVU23
+  87 0032 01FB03F3 		mul	r3, r1, r3
+  88              	.LVL7:
+  89              		.loc 1 41 7 view .LVU24
+  90 0036 82EA0302 		eor	r2, r2, r3
+  91              	.LVL8:
+  42:HvUtils.c     ****     str += 4; len -= 4;
+  92              		.loc 1 42 5 is_stmt 1 view .LVU25
+  93              		.loc 1 42 15 view .LVU26
+  94              		.loc 1 42 15 is_stmt 0 view .LVU27
+  95              	.LBE3:
+  31:HvUtils.c     **** #if HV_EMSCRIPTEN
+  96              		.loc 1 31 9 is_stmt 1 view .LVU28
+  97 003a F1D1     		bne	.L4
+  98              	.LBB4:
+  99              		.loc 1 42 19 is_stmt 0 view .LVU29
+ 100 003c 00F00300 		and	r0, r0, #3
+ 101              	.LVL9:
+ 102              	.L3:
+ 103              		.loc 1 42 19 view .LVU30
+ 104              	.LBE4:
+  43:HvUtils.c     ****   }
+  44:HvUtils.c     ****   switch (len) {
+ 105              		.loc 1 44 3 is_stmt 1 view .LVU31
+ 106 0040 0228     		cmp	r0, #2
+ 107 0042 0FD0     		beq	.L5
+ 108 0044 0328     		cmp	r0, #3
+ 109 0046 09D0     		beq	.L6
+ 110 0048 0128     		cmp	r0, #1
+ 111 004a 0FD0     		beq	.L7
+ 112              	.L8:
+  45:HvUtils.c     ****     case 3: x ^= (str[2] << 16);
+  46:HvUtils.c     ****     case 2: x ^= (str[1] << 8);
+  47:HvUtils.c     ****     case 1: x ^= str[0]; x *= n;
+  48:HvUtils.c     ****     default: break;
+ 113              		.loc 1 48 14 view .LVU32
+  49:HvUtils.c     ****   }
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccEWwSRE.s 			page 4
+
+
+  50:HvUtils.c     ****   x ^= (x >> 13);
+ 114              		.loc 1 50 3 view .LVU33
+ 115              		.loc 1 50 5 is_stmt 0 view .LVU34
+ 116 004c 82EA5233 		eor	r3, r2, r2, lsr #13
+ 117              	.LVL10:
+  51:HvUtils.c     ****   x *= n;
+ 118              		.loc 1 51 3 is_stmt 1 view .LVU35
+ 119              		.loc 1 51 5 is_stmt 0 view .LVU36
+ 120 0050 0B48     		ldr	r0, .L20
+ 121 0052 03FB00F0 		mul	r0, r3, r0
+ 122              	.LVL11:
+  52:HvUtils.c     ****   x ^= (x >> 15);
+ 123              		.loc 1 52 3 is_stmt 1 view .LVU37
+ 124              		.loc 1 52 5 is_stmt 0 view .LVU38
+ 125 0056 80EAD030 		eor	r0, r0, r0, lsr #15
+ 126              	.LVL12:
+  53:HvUtils.c     ****   return x;
+ 127              		.loc 1 53 3 is_stmt 1 view .LVU39
+ 128              	.L1:
+  54:HvUtils.c     **** }
+ 129              		.loc 1 54 1 is_stmt 0 view .LVU40
+ 130 005a 10BD     		pop	{r4, pc}
+ 131              	.LVL13:
+ 132              	.L6:
+  45:HvUtils.c     ****     case 2: x ^= (str[1] << 8);
+ 133              		.loc 1 45 13 is_stmt 1 view .LVU41
+  45:HvUtils.c     ****     case 2: x ^= (str[1] << 8);
+ 134              		.loc 1 45 22 is_stmt 0 view .LVU42
+ 135 005c 9CF80230 		ldrb	r3, [ip, #2]	@ zero_extendqisi2
+  45:HvUtils.c     ****     case 2: x ^= (str[1] << 8);
+ 136              		.loc 1 45 15 view .LVU43
+ 137 0060 82EA0342 		eor	r2, r2, r3, lsl #16
+ 138              	.LVL14:
+ 139              	.L5:
+  46:HvUtils.c     ****     case 1: x ^= str[0]; x *= n;
+ 140              		.loc 1 46 13 is_stmt 1 view .LVU44
+  46:HvUtils.c     ****     case 1: x ^= str[0]; x *= n;
+ 141              		.loc 1 46 22 is_stmt 0 view .LVU45
+ 142 0064 9CF80130 		ldrb	r3, [ip, #1]	@ zero_extendqisi2
+  46:HvUtils.c     ****     case 1: x ^= str[0]; x *= n;
+ 143              		.loc 1 46 15 view .LVU46
+ 144 0068 82EA0322 		eor	r2, r2, r3, lsl #8
+ 145              	.LVL15:
+ 146              	.L7:
+  47:HvUtils.c     ****     default: break;
+ 147              		.loc 1 47 13 is_stmt 1 view .LVU47
+  47:HvUtils.c     ****     default: break;
+ 148              		.loc 1 47 21 is_stmt 0 view .LVU48
+ 149 006c 9CF80030 		ldrb	r3, [ip]	@ zero_extendqisi2
+  47:HvUtils.c     ****     default: break;
+ 150              		.loc 1 47 28 view .LVU49
+ 151 0070 0349     		ldr	r1, .L20
+  47:HvUtils.c     ****     default: break;
+ 152              		.loc 1 47 15 view .LVU50
+ 153 0072 5340     		eors	r3, r3, r2
+ 154              	.LVL16:
+  47:HvUtils.c     ****     default: break;
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccEWwSRE.s 			page 5
+
+
+ 155              		.loc 1 47 26 is_stmt 1 view .LVU51
+  47:HvUtils.c     ****     default: break;
+ 156              		.loc 1 47 28 is_stmt 0 view .LVU52
+ 157 0074 01FB03F2 		mul	r2, r1, r3
+ 158              	.LVL17:
+  47:HvUtils.c     ****     default: break;
+ 159              		.loc 1 47 28 view .LVU53
+ 160 0078 E8E7     		b	.L8
+ 161              	.LVL18:
+ 162              	.L10:
+  31:HvUtils.c     **** #if HV_EMSCRIPTEN
+ 163              		.loc 1 31 9 view .LVU54
+ 164 007a 0246     		mov	r2, r0
+ 165 007c A446     		mov	ip, r4
+ 166 007e DFE7     		b	.L3
+ 167              	.L21:
+ 168              		.align	2
+ 169              	.L20:
+ 170 0080 95E9D15B 		.word	1540483477
+ 171              		.cfi_endproc
+ 172              	.LFE345:
+ 174              		.text
+ 175              	.Letext0:
+ 176              		.file 2 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 177              		.file 3 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 178              		.file 4 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\string.h"
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccEWwSRE.s 			page 6
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 HvUtils.c
+C:\Users\bobka\AppData\Local\Temp\ccEWwSRE.s:17     .text.hv_string_to_hash:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccEWwSRE.s:26     .text.hv_string_to_hash:00000000 hv_string_to_hash
+C:\Users\bobka\AppData\Local\Temp\ccEWwSRE.s:170    .text.hv_string_to_hash:00000080 $d
+
+UNDEFINED SYMBOLS
+strlen

@@ -19,13 +19,15 @@ This is my personal repository for my wind controller project in development to 
 
 (Post pic of prototype here)
 
-The main confusion with using plug data is writing the custom .json file for the hardware integration. json doesn't have built-in comment functionality, so I had to really dig for the resources for this. See [json2daisy](https://github.com/electro-smith/json2daisy/tree/main)
+The main confusion with using plug data is writing the custom .json file for the hardware integration. json doesn't have built-in comment functionality, so I had to really dig for the resources for this. See [here.](https://github.com/Wasted-Audio/hvcc/tree/develop/hvcc/generators/c2daisy/json2daisy/)
 
 Unfortunately, it does not have support for an option to program in single-pin capacitive touch, so we'll need to trick it with pd code using an in/out pair. 
 
 They also seem to use the digital pin numberings for analog ins, so 15 instead of A0.
 
 Switch has a pullup resistor functionality built into it, but it is unclear if encoder does or not. 
+
+I was having an issue with the analog inputs not printing to serial correctly when I was trying to code it in plugdata. Still working on a solution.
 
 ## Prospectus Submission for STS 4500, Summer 2026
 

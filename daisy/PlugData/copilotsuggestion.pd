@@ -1,0 +1,10 @@
+#N canvas 827 239 734 565 12;
+#X obj 249 331 print;
+#X obj 235 275 snapshot~;
+#X obj 168 204 loadbang;
+#X obj 168 230 metro 100;
+#X obj 321 211 adc~ 1;
+#X connect 1 0 0 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X connect 4 0 1 0;

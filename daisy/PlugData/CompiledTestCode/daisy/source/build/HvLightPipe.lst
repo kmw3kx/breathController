@@ -1,0 +1,864 @@
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 28, 1
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 2
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"HvLightPipe.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.rodata.hLp_init.str1.4,"aMS",%progbits,1
+  17              		.align	2
+  18              	.LC0:
+  19 0000 712D3E62 		.ascii	"q->buffer != ((void *)0)\000"
+  19      75666665 
+  19      7220213D 
+  19      20282876 
+  19      6F696420 
+  20 0019 000000   		.align	2
+  21              	.LC1:
+  22 001c 48764C69 		.ascii	"HvLightPipe.c\000"
+  22      67687450 
+  22      6970652E 
+  22      6300
+  23              		.section	.text.hLp_init,"ax",%progbits
+  24              		.align	1
+  25              		.p2align 2,,3
+  26              		.global	hLp_init
+  27              		.arch armv7e-m
+  28              		.syntax unified
+  29              		.thumb
+  30              		.thumb_func
+  31              		.fpu fpv5-d16
+  33              	hLp_init:
+  34              	.LVL0:
+  35              	.LFB345:
+  36              		.file 1 "HvLightPipe.c"
+   1:HvLightPipe.c **** /**
+   2:HvLightPipe.c ****  * Copyright (c) 2014-2018 Enzien Audio Ltd.
+   3:HvLightPipe.c ****  *
+   4:HvLightPipe.c ****  * Permission to use, copy, modify, and/or distribute this software for any
+   5:HvLightPipe.c ****  * purpose with or without fee is hereby granted, provided that the above
+   6:HvLightPipe.c ****  * copyright notice and this permission notice appear in all copies.
+   7:HvLightPipe.c ****  *
+   8:HvLightPipe.c ****  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+   9:HvLightPipe.c ****  * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  10:HvLightPipe.c ****  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  11:HvLightPipe.c ****  * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  12:HvLightPipe.c ****  * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  13:HvLightPipe.c ****  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  14:HvLightPipe.c ****  * PERFORMANCE OF THIS SOFTWARE.
+  15:HvLightPipe.c ****  */
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 2
+
+
+  16:HvLightPipe.c **** 
+  17:HvLightPipe.c **** #include "HvLightPipe.h"
+  18:HvLightPipe.c **** 
+  19:HvLightPipe.c **** #if __SSE__ || HV_SIMD_SSE
+  20:HvLightPipe.c **** #include <xmmintrin.h>
+  21:HvLightPipe.c **** #define hv_sfence() _mm_sfence()
+  22:HvLightPipe.c **** #elif __arm__ || HV_SIMD_NEON
+  23:HvLightPipe.c ****   #if __ARM_ACLE
+  24:HvLightPipe.c ****     #include <arm_acle.h>
+  25:HvLightPipe.c ****     // https://msdn.microsoft.com/en-us/library/hh875058.aspx#BarrierRestrictions
+  26:HvLightPipe.c ****     // http://doxygen.reactos.org/d8/d47/armintr_8h_a02be7ec76ca51842bc90d9b466b54752.html
+  27:HvLightPipe.c ****     #define hv_sfence() __dmb(0xE) /* _ARM_BARRIER_ST */
+  28:HvLightPipe.c ****   #elif defined(__GNUC__) && (__ARM_ARCH >= 7)
+  29:HvLightPipe.c ****     #define hv_sfence() __asm__ volatile ("dmb 0xE":::"memory")
+  30:HvLightPipe.c ****   #else
+  31:HvLightPipe.c ****     // http://stackoverflow.com/questions/19965076/gcc-memory-barrier-sync-synchronize-vs-asm-volat
+  32:HvLightPipe.c ****     #define hv_sfence() __sync_synchronize()
+  33:HvLightPipe.c ****   #endif
+  34:HvLightPipe.c **** #elif HV_WIN
+  35:HvLightPipe.c **** // https://msdn.microsoft.com/en-us/library/windows/desktop/ms684208(v=vs.85).aspx
+  36:HvLightPipe.c **** #define hv_sfence() _WriteBarrier()
+  37:HvLightPipe.c **** #else
+  38:HvLightPipe.c **** #define hv_sfence() __asm__ volatile("" : : : "memory")
+  39:HvLightPipe.c **** #endif
+  40:HvLightPipe.c **** 
+  41:HvLightPipe.c **** #define HLP_STOP 0
+  42:HvLightPipe.c **** #define HLP_LOOP 0xFFFFFFFF
+  43:HvLightPipe.c **** #define HLP_SET_UINT32_AT_BUFFER(a, b) (*((hv_uint32_t *) (a)) = (b))
+  44:HvLightPipe.c **** #define HLP_GET_UINT32_AT_BUFFER(a) (*((hv_uint32_t *) (a)))
+  45:HvLightPipe.c **** 
+  46:HvLightPipe.c **** hv_uint32_t hLp_init(HvLightPipe *q, hv_uint32_t numBytes) {
+  37              		.loc 1 46 60 view -0
+  38              		.cfi_startproc
+  39              		@ args = 0, pretend = 0, frame = 0
+  40              		@ frame_needed = 0, uses_anonymous_args = 0
+  47:HvLightPipe.c ****   if (numBytes > 0) {
+  41              		.loc 1 47 3 view .LVU1
+  46:HvLightPipe.c ****   if (numBytes > 0) {
+  42              		.loc 1 46 60 is_stmt 0 view .LVU2
+  43 0000 38B5     		push	{r3, r4, r5, lr}
+  44              		.cfi_def_cfa_offset 16
+  45              		.cfi_offset 3, -16
+  46              		.cfi_offset 4, -12
+  47              		.cfi_offset 5, -8
+  48              		.cfi_offset 14, -4
+  46:HvLightPipe.c ****   if (numBytes > 0) {
+  49              		.loc 1 46 60 view .LVU3
+  50 0002 0546     		mov	r5, r0
+  51              		.loc 1 47 6 view .LVU4
+  52 0004 0C46     		mov	r4, r1
+  48:HvLightPipe.c ****     q->buffer = (char *) hv_malloc(numBytes);
+  53              		.loc 1 48 26 view .LVU5
+  54 0006 0846     		mov	r0, r1
+  55              	.LVL1:
+  47:HvLightPipe.c ****   if (numBytes > 0) {
+  56              		.loc 1 47 6 view .LVU6
+  57 0008 31B9     		cbnz	r1, .L7
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 3
+
+
+  49:HvLightPipe.c ****     hv_assert(q->buffer != NULL);
+  50:HvLightPipe.c ****     HLP_SET_UINT32_AT_BUFFER(q->buffer, HLP_STOP);
+  51:HvLightPipe.c ****   } else {
+  52:HvLightPipe.c ****     q->buffer = NULL;
+  58              		.loc 1 52 5 is_stmt 1 view .LVU7
+  59              		.loc 1 52 15 is_stmt 0 view .LVU8
+  60 000a 2960     		str	r1, [r5]
+  53:HvLightPipe.c ****   }
+  54:HvLightPipe.c ****   q->writeHead = q->buffer;
+  61              		.loc 1 54 3 is_stmt 1 view .LVU9
+  55:HvLightPipe.c ****   q->readHead = q->buffer;
+  62              		.loc 1 55 15 is_stmt 0 view .LVU10
+  63 000c C5E90100 		strd	r0, r0, [r5, #4]
+  56:HvLightPipe.c ****   q->len = numBytes;
+  64              		.loc 1 56 3 is_stmt 1 view .LVU11
+  57:HvLightPipe.c ****   q->remainingBytes = numBytes;
+  65              		.loc 1 57 21 is_stmt 0 view .LVU12
+  66 0010 C5E90344 		strd	r4, r4, [r5, #12]
+  58:HvLightPipe.c ****   return numBytes;
+  67              		.loc 1 58 3 is_stmt 1 view .LVU13
+  59:HvLightPipe.c **** }
+  68              		.loc 1 59 1 is_stmt 0 view .LVU14
+  69 0014 2046     		mov	r0, r4
+  70 0016 38BD     		pop	{r3, r4, r5, pc}
+  71              	.LVL2:
+  72              	.L7:
+  48:HvLightPipe.c ****     hv_assert(q->buffer != NULL);
+  73              		.loc 1 48 5 is_stmt 1 view .LVU15
+  48:HvLightPipe.c ****     hv_assert(q->buffer != NULL);
+  74              		.loc 1 48 26 is_stmt 0 view .LVU16
+  75 0018 FFF7FEFF 		bl	malloc
+  76              	.LVL3:
+  48:HvLightPipe.c ****     hv_assert(q->buffer != NULL);
+  77              		.loc 1 48 15 view .LVU17
+  78 001c 2860     		str	r0, [r5]
+  49:HvLightPipe.c ****     HLP_SET_UINT32_AT_BUFFER(q->buffer, HLP_STOP);
+  79              		.loc 1 49 5 is_stmt 1 view .LVU18
+  80 001e 38B1     		cbz	r0, .L8
+  50:HvLightPipe.c ****   } else {
+  81              		.loc 1 50 5 view .LVU19
+  82 0020 0023     		movs	r3, #0
+  55:HvLightPipe.c ****   q->len = numBytes;
+  83              		.loc 1 55 15 is_stmt 0 view .LVU20
+  84 0022 C5E90100 		strd	r0, r0, [r5, #4]
+  50:HvLightPipe.c ****   } else {
+  85              		.loc 1 50 5 view .LVU21
+  86 0026 0360     		str	r3, [r0]
+  54:HvLightPipe.c ****   q->readHead = q->buffer;
+  87              		.loc 1 54 3 is_stmt 1 view .LVU22
+  56:HvLightPipe.c ****   q->remainingBytes = numBytes;
+  88              		.loc 1 56 3 view .LVU23
+  89              		.loc 1 59 1 is_stmt 0 view .LVU24
+  90 0028 2046     		mov	r0, r4
+  57:HvLightPipe.c ****   return numBytes;
+  91              		.loc 1 57 21 view .LVU25
+  92 002a C5E90344 		strd	r4, r4, [r5, #12]
+  58:HvLightPipe.c **** }
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 4
+
+
+  93              		.loc 1 58 3 is_stmt 1 view .LVU26
+  94              		.loc 1 59 1 is_stmt 0 view .LVU27
+  95 002e 38BD     		pop	{r3, r4, r5, pc}
+  96              	.LVL4:
+  97              	.L8:
+  49:HvLightPipe.c ****     HLP_SET_UINT32_AT_BUFFER(q->buffer, HLP_STOP);
+  98              		.loc 1 49 5 discriminator 1 view .LVU28
+  99 0030 024B     		ldr	r3, .L9
+ 100 0032 3121     		movs	r1, #49
+ 101 0034 024A     		ldr	r2, .L9+4
+ 102 0036 0348     		ldr	r0, .L9+8
+ 103 0038 FFF7FEFF 		bl	__assert_func
+ 104              	.LVL5:
+ 105              	.L10:
+ 106              		.align	2
+ 107              	.L9:
+ 108 003c 00000000 		.word	.LC0
+ 109 0040 00000000 		.word	.LANCHOR0
+ 110 0044 1C000000 		.word	.LC1
+ 111              		.cfi_endproc
+ 112              	.LFE345:
+ 114              		.section	.text.hLp_free,"ax",%progbits
+ 115              		.align	1
+ 116              		.p2align 2,,3
+ 117              		.global	hLp_free
+ 118              		.syntax unified
+ 119              		.thumb
+ 120              		.thumb_func
+ 121              		.fpu fpv5-d16
+ 123              	hLp_free:
+ 124              	.LVL6:
+ 125              	.LFB346:
+  60:HvLightPipe.c **** 
+  61:HvLightPipe.c **** void hLp_free(HvLightPipe *q) {
+ 126              		.loc 1 61 31 is_stmt 1 view -0
+ 127              		.cfi_startproc
+ 128              		@ args = 0, pretend = 0, frame = 0
+ 129              		@ frame_needed = 0, uses_anonymous_args = 0
+ 130              		@ link register save eliminated.
+  62:HvLightPipe.c ****   hv_free(q->buffer);
+ 131              		.loc 1 62 3 view .LVU30
+ 132 0000 0068     		ldr	r0, [r0]
+ 133              	.LVL7:
+ 134              		.loc 1 62 3 is_stmt 0 view .LVU31
+ 135 0002 FFF7FEBF 		b	free
+ 136              	.LVL8:
+ 137              		.cfi_endproc
+ 138              	.LFE346:
+ 140 0006 00BF     		.section	.text.hLp_hasData,"ax",%progbits
+ 141              		.align	1
+ 142              		.p2align 2,,3
+ 143              		.global	hLp_hasData
+ 144              		.syntax unified
+ 145              		.thumb
+ 146              		.thumb_func
+ 147              		.fpu fpv5-d16
+ 149              	hLp_hasData:
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 5
+
+
+ 150              	.LVL9:
+ 151              	.LFB347:
+  63:HvLightPipe.c **** }
+  64:HvLightPipe.c **** 
+  65:HvLightPipe.c **** hv_uint32_t hLp_hasData(HvLightPipe *q) {
+ 152              		.loc 1 65 41 is_stmt 1 view -0
+ 153              		.cfi_startproc
+ 154              		@ args = 0, pretend = 0, frame = 0
+ 155              		@ frame_needed = 0, uses_anonymous_args = 0
+ 156              		@ link register save eliminated.
+  66:HvLightPipe.c ****   hv_uint32_t x = HLP_GET_UINT32_AT_BUFFER(q->readHead);
+ 157              		.loc 1 66 3 view .LVU33
+ 158              		.loc 1 66 15 is_stmt 0 view .LVU34
+ 159 0000 8368     		ldr	r3, [r0, #8]
+ 160 0002 1B68     		ldr	r3, [r3]
+ 161              	.LVL10:
+  67:HvLightPipe.c ****   if (x == HLP_LOOP) {
+ 162              		.loc 1 67 3 is_stmt 1 view .LVU35
+ 163              		.loc 1 67 6 is_stmt 0 view .LVU36
+ 164 0004 5A1C     		adds	r2, r3, #1
+ 165 0006 02D1     		bne	.L12
+  68:HvLightPipe.c ****     q->readHead = q->buffer;
+ 166              		.loc 1 68 5 is_stmt 1 view .LVU37
+ 167              		.loc 1 68 20 is_stmt 0 view .LVU38
+ 168 0008 0268     		ldr	r2, [r0]
+  69:HvLightPipe.c ****     x = HLP_GET_UINT32_AT_BUFFER(q->readHead);
+ 169              		.loc 1 69 7 view .LVU39
+ 170 000a 1368     		ldr	r3, [r2]
+ 171              	.LVL11:
+  68:HvLightPipe.c ****     q->readHead = q->buffer;
+ 172              		.loc 1 68 17 view .LVU40
+ 173 000c 8260     		str	r2, [r0, #8]
+ 174              	.LVL12:
+ 175              		.loc 1 69 5 is_stmt 1 view .LVU41
+  70:HvLightPipe.c ****   }
+  71:HvLightPipe.c ****   return x;
+ 176              		.loc 1 71 3 view .LVU42
+ 177              	.L12:
+  72:HvLightPipe.c **** }
+ 178              		.loc 1 72 1 is_stmt 0 view .LVU43
+ 179 000e 1846     		mov	r0, r3
+ 180              	.LVL13:
+ 181              		.loc 1 72 1 view .LVU44
+ 182 0010 7047     		bx	lr
+ 183              		.cfi_endproc
+ 184              	.LFE347:
+ 186 0012 00BF     		.section	.text.hLp_getWriteBuffer,"ax",%progbits
+ 187              		.align	1
+ 188              		.p2align 2,,3
+ 189              		.global	hLp_getWriteBuffer
+ 190              		.syntax unified
+ 191              		.thumb
+ 192              		.thumb_func
+ 193              		.fpu fpv5-d16
+ 195              	hLp_getWriteBuffer:
+ 196              	.LVL14:
+ 197              	.LFB348:
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 6
+
+
+  73:HvLightPipe.c **** 
+  74:HvLightPipe.c **** char *hLp_getWriteBuffer(HvLightPipe *q, hv_uint32_t bytesToWrite) {
+ 198              		.loc 1 74 68 is_stmt 1 view -0
+ 199              		.cfi_startproc
+ 200              		@ args = 0, pretend = 0, frame = 0
+ 201              		@ frame_needed = 0, uses_anonymous_args = 0
+ 202              		@ link register save eliminated.
+  75:HvLightPipe.c ****   char *const readHead = q->readHead;
+ 203              		.loc 1 75 3 view .LVU46
+  76:HvLightPipe.c ****   char *const oldWriteHead = q->writeHead;
+  77:HvLightPipe.c ****   const hv_uint32_t totalByteRequirement = bytesToWrite + 2*sizeof(hv_uint32_t);
+ 204              		.loc 1 77 21 is_stmt 0 view .LVU47
+ 205 0000 01F10802 		add	r2, r1, #8
+  78:HvLightPipe.c **** 
+  79:HvLightPipe.c ****   // check if there is enough space to write the data in the remaining
+  80:HvLightPipe.c ****   // length of the buffer
+  81:HvLightPipe.c ****   if (totalByteRequirement <= q->remainingBytes) {
+ 206              		.loc 1 81 6 view .LVU48
+ 207 0004 0369     		ldr	r3, [r0, #16]
+ 208 0006 9342     		cmp	r3, r2
+  74:HvLightPipe.c ****   char *const readHead = q->readHead;
+ 209              		.loc 1 74 68 view .LVU49
+ 210 0008 70B4     		push	{r4, r5, r6}
+ 211              		.cfi_def_cfa_offset 12
+ 212              		.cfi_offset 4, -12
+ 213              		.cfi_offset 5, -8
+ 214              		.cfi_offset 6, -4
+  76:HvLightPipe.c ****   char *const oldWriteHead = q->writeHead;
+ 215              		.loc 1 76 15 view .LVU50
+ 216 000a D0E90145 		ldrd	r4, r5, [r0, #4]
+ 217              	.LVL15:
+  77:HvLightPipe.c **** 
+ 218              		.loc 1 77 3 is_stmt 1 view .LVU51
+ 219              		.loc 1 81 3 view .LVU52
+ 220              		.loc 1 81 6 is_stmt 0 view .LVU53
+ 221 000e 08D3     		bcc	.L15
+ 222              	.LBB2:
+  82:HvLightPipe.c ****     char *const newWriteHead = oldWriteHead + sizeof(hv_uint32_t) + bytesToWrite;
+ 223              		.loc 1 82 5 is_stmt 1 view .LVU54
+ 224              	.LVL16:
+  83:HvLightPipe.c **** 
+  84:HvLightPipe.c ****     // check if writing would overwrite existing data in the pipe (return NULL if so)
+  85:HvLightPipe.c ****     if ((oldWriteHead < readHead) && (newWriteHead >= readHead)) return NULL;
+ 225              		.loc 1 85 5 view .LVU55
+  82:HvLightPipe.c ****     char *const newWriteHead = oldWriteHead + sizeof(hv_uint32_t) + bytesToWrite;
+ 226              		.loc 1 82 67 is_stmt 0 view .LVU56
+ 227 0010 0431     		adds	r1, r1, #4
+ 228              	.LVL17:
+  82:HvLightPipe.c ****     char *const newWriteHead = oldWriteHead + sizeof(hv_uint32_t) + bytesToWrite;
+ 229              		.loc 1 82 17 view .LVU57
+ 230 0012 2144     		add	r1, r1, r4
+ 231              	.LVL18:
+ 232              		.loc 1 85 8 view .LVU58
+ 233 0014 8D42     		cmp	r5, r1
+ 234 0016 01D8     		bhi	.L21
+ 235 0018 A542     		cmp	r5, r4
+ 236 001a 1AD8     		bhi	.L19
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 7
+
+
+ 237              	.L21:
+  86:HvLightPipe.c ****     else return (oldWriteHead + sizeof(hv_uint32_t));
+ 238              		.loc 1 86 10 is_stmt 1 view .LVU59
+ 239              		.loc 1 86 31 is_stmt 0 view .LVU60
+ 240 001c 201D     		adds	r0, r4, #4
+ 241              	.LVL19:
+ 242              		.loc 1 86 31 view .LVU61
+ 243              	.LBE2:
+  87:HvLightPipe.c ****   } else {
+  88:HvLightPipe.c ****     // there isn't enough space, try looping around to the start
+  89:HvLightPipe.c ****     if (totalByteRequirement <= q->len) {
+  90:HvLightPipe.c ****       if ((oldWriteHead < readHead) || ((q->buffer + totalByteRequirement) > readHead)) {
+  91:HvLightPipe.c ****         return NULL; // overwrite condition
+  92:HvLightPipe.c ****       } else {
+  93:HvLightPipe.c ****         q->writeHead = q->buffer;
+  94:HvLightPipe.c ****         q->remainingBytes = q->len;
+  95:HvLightPipe.c ****         HLP_SET_UINT32_AT_BUFFER(q->buffer, HLP_STOP);
+  96:HvLightPipe.c ****         hv_sfence();
+  97:HvLightPipe.c ****         HLP_SET_UINT32_AT_BUFFER(oldWriteHead, HLP_LOOP);
+  98:HvLightPipe.c ****         return q->buffer + sizeof(hv_uint32_t);
+  99:HvLightPipe.c ****       }
+ 100:HvLightPipe.c ****     } else {
+ 101:HvLightPipe.c ****       return NULL; // there isn't enough space to write the data
+ 102:HvLightPipe.c ****     }
+ 103:HvLightPipe.c ****   }
+ 104:HvLightPipe.c **** }
+ 244              		.loc 1 104 1 view .LVU62
+ 245 001e 70BC     		pop	{r4, r5, r6}
+ 246              		.cfi_remember_state
+ 247              		.cfi_restore 6
+ 248              		.cfi_restore 5
+ 249              		.cfi_restore 4
+ 250              		.cfi_def_cfa_offset 0
+ 251              	.LVL20:
+ 252              		.loc 1 104 1 view .LVU63
+ 253 0020 7047     		bx	lr
+ 254              	.LVL21:
+ 255              	.L15:
+ 256              		.cfi_restore_state
+  89:HvLightPipe.c ****       if ((oldWriteHead < readHead) || ((q->buffer + totalByteRequirement) > readHead)) {
+ 257              		.loc 1 89 5 is_stmt 1 view .LVU64
+  89:HvLightPipe.c ****       if ((oldWriteHead < readHead) || ((q->buffer + totalByteRequirement) > readHead)) {
+ 258              		.loc 1 89 34 is_stmt 0 view .LVU65
+ 259 0022 C168     		ldr	r1, [r0, #12]
+ 260              	.LVL22:
+  90:HvLightPipe.c ****         return NULL; // overwrite condition
+ 261              		.loc 1 90 7 is_stmt 1 view .LVU66
+  90:HvLightPipe.c ****         return NULL; // overwrite condition
+ 262              		.loc 1 90 10 is_stmt 0 view .LVU67
+ 263 0024 9142     		cmp	r1, r2
+ 264 0026 14D3     		bcc	.L19
+ 265 0028 A542     		cmp	r5, r4
+ 266 002a 94BF     		ite	ls
+ 267 002c 0023     		movls	r3, #0
+ 268 002e 0123     		movhi	r3, #1
+ 269 0030 7BB9     		cbnz	r3, .L19
+  90:HvLightPipe.c ****         return NULL; // overwrite condition
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 8
+
+
+ 270              		.loc 1 90 43 discriminator 1 view .LVU68
+ 271 0032 0668     		ldr	r6, [r0]
+  90:HvLightPipe.c ****         return NULL; // overwrite condition
+ 272              		.loc 1 90 52 discriminator 1 view .LVU69
+ 273 0034 3244     		add	r2, r2, r6
+ 274              	.LVL23:
+  90:HvLightPipe.c ****         return NULL; // overwrite condition
+ 275              		.loc 1 90 37 discriminator 1 view .LVU70
+ 276 0036 9542     		cmp	r5, r2
+ 277 0038 0ED3     		bcc	.L20
+  93:HvLightPipe.c ****         q->remainingBytes = q->len;
+ 278              		.loc 1 93 9 is_stmt 1 view .LVU71
+  93:HvLightPipe.c ****         q->remainingBytes = q->len;
+ 279              		.loc 1 93 22 is_stmt 0 view .LVU72
+ 280 003a 4660     		str	r6, [r0, #4]
+  94:HvLightPipe.c ****         HLP_SET_UINT32_AT_BUFFER(q->buffer, HLP_STOP);
+ 281              		.loc 1 94 9 is_stmt 1 view .LVU73
+  94:HvLightPipe.c ****         HLP_SET_UINT32_AT_BUFFER(q->buffer, HLP_STOP);
+ 282              		.loc 1 94 27 is_stmt 0 view .LVU74
+ 283 003c 0161     		str	r1, [r0, #16]
+  95:HvLightPipe.c ****         hv_sfence();
+ 284              		.loc 1 95 9 is_stmt 1 view .LVU75
+ 285 003e 3360     		str	r3, [r6]
+  96:HvLightPipe.c ****         HLP_SET_UINT32_AT_BUFFER(oldWriteHead, HLP_LOOP);
+ 286              		.loc 1 96 9 view .LVU76
+ 287              		.syntax unified
+ 288              	@ 96 "HvLightPipe.c" 1
+ 289 0040 BFF35E8F 		dmb 0xE
+ 290              	@ 0 "" 2
+  97:HvLightPipe.c ****         return q->buffer + sizeof(hv_uint32_t);
+ 291              		.loc 1 97 9 view .LVU77
+  98:HvLightPipe.c ****       }
+ 292              		.loc 1 98 26 is_stmt 0 view .LVU78
+ 293              		.thumb
+ 294              		.syntax unified
+ 295 0044 0068     		ldr	r0, [r0]
+ 296              	.LVL24:
+  97:HvLightPipe.c ****         return q->buffer + sizeof(hv_uint32_t);
+ 297              		.loc 1 97 9 view .LVU79
+ 298 0046 4FF0FF33 		mov	r3, #-1
+  98:HvLightPipe.c ****       }
+ 299              		.loc 1 98 26 view .LVU80
+ 300 004a 0430     		adds	r0, r0, #4
+  97:HvLightPipe.c ****         return q->buffer + sizeof(hv_uint32_t);
+ 301              		.loc 1 97 9 view .LVU81
+ 302 004c 2360     		str	r3, [r4]
+  98:HvLightPipe.c ****       }
+ 303              		.loc 1 98 9 is_stmt 1 view .LVU82
+ 304              	.L14:
+ 305              		.loc 1 104 1 is_stmt 0 view .LVU83
+ 306 004e 70BC     		pop	{r4, r5, r6}
+ 307              		.cfi_remember_state
+ 308              		.cfi_restore 6
+ 309              		.cfi_restore 5
+ 310              		.cfi_restore 4
+ 311              		.cfi_def_cfa_offset 0
+ 312              	.LVL25:
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 9
+
+
+ 313              		.loc 1 104 1 view .LVU84
+ 314 0050 7047     		bx	lr
+ 315              	.LVL26:
+ 316              	.L19:
+ 317              		.cfi_restore_state
+ 318              	.LBB3:
+  85:HvLightPipe.c ****     else return (oldWriteHead + sizeof(hv_uint32_t));
+ 319              		.loc 1 85 73 view .LVU85
+ 320 0052 0020     		movs	r0, #0
+ 321              	.LVL27:
+  85:HvLightPipe.c ****     else return (oldWriteHead + sizeof(hv_uint32_t));
+ 322              		.loc 1 85 73 view .LVU86
+ 323              	.LBE3:
+ 324              		.loc 1 104 1 view .LVU87
+ 325 0054 70BC     		pop	{r4, r5, r6}
+ 326              		.cfi_remember_state
+ 327              		.cfi_restore 6
+ 328              		.cfi_restore 5
+ 329              		.cfi_restore 4
+ 330              		.cfi_def_cfa_offset 0
+ 331              	.LVL28:
+ 332              		.loc 1 104 1 view .LVU88
+ 333 0056 7047     		bx	lr
+ 334              	.LVL29:
+ 335              	.L20:
+ 336              		.cfi_restore_state
+ 337              	.LBB4:
+  85:HvLightPipe.c ****     else return (oldWriteHead + sizeof(hv_uint32_t));
+ 338              		.loc 1 85 73 view .LVU89
+ 339 0058 1846     		mov	r0, r3
+ 340              	.LVL30:
+  85:HvLightPipe.c ****     else return (oldWriteHead + sizeof(hv_uint32_t));
+ 341              		.loc 1 85 73 view .LVU90
+ 342 005a F8E7     		b	.L14
+ 343              	.LBE4:
+ 344              		.cfi_endproc
+ 345              	.LFE348:
+ 347              		.section	.rodata.hLp_produce.str1.4,"aMS",%progbits,1
+ 348              		.align	2
+ 349              	.LC2:
+ 350 0000 712D3E72 		.ascii	"q->remainingBytes >= (numBytes + 2*sizeof(uint32_t)"
+ 350      656D6169 
+ 350      6E696E67 
+ 350      42797465 
+ 350      73203E3D 
+ 351 0033 2900     		.ascii	")\000"
+ 352              		.section	.text.hLp_produce,"ax",%progbits
+ 353              		.align	1
+ 354              		.p2align 2,,3
+ 355              		.global	hLp_produce
+ 356              		.syntax unified
+ 357              		.thumb
+ 358              		.thumb_func
+ 359              		.fpu fpv5-d16
+ 361              	hLp_produce:
+ 362              	.LVL31:
+ 363              	.LFB349:
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 10
+
+
+ 105:HvLightPipe.c **** 
+ 106:HvLightPipe.c **** void hLp_produce(HvLightPipe *q, hv_uint32_t numBytes) {
+ 364              		.loc 1 106 56 is_stmt 1 view -0
+ 365              		.cfi_startproc
+ 366              		@ args = 0, pretend = 0, frame = 0
+ 367              		@ frame_needed = 0, uses_anonymous_args = 0
+ 107:HvLightPipe.c ****   hv_assert(q->remainingBytes >= (numBytes + 2*sizeof(hv_uint32_t)));
+ 368              		.loc 1 107 3 view .LVU92
+ 369 0000 01F10802 		add	r2, r1, #8
+ 106:HvLightPipe.c ****   hv_assert(q->remainingBytes >= (numBytes + 2*sizeof(hv_uint32_t)));
+ 370              		.loc 1 106 56 is_stmt 0 view .LVU93
+ 371 0004 08B5     		push	{r3, lr}
+ 372              		.cfi_def_cfa_offset 8
+ 373              		.cfi_offset 3, -8
+ 374              		.cfi_offset 14, -4
+ 375              		.loc 1 107 3 view .LVU94
+ 376 0006 0369     		ldr	r3, [r0, #16]
+ 377 0008 9342     		cmp	r3, r2
+ 378 000a 0FD3     		bcc	.L29
+ 108:HvLightPipe.c ****   q->remainingBytes -= (sizeof(hv_uint32_t) + numBytes);
+ 379              		.loc 1 108 3 is_stmt 1 view .LVU95
+ 380              		.loc 1 108 21 is_stmt 0 view .LVU96
+ 381 000c 5B1A     		subs	r3, r3, r1
+ 109:HvLightPipe.c ****   char *const oldWriteHead = q->writeHead;
+ 382              		.loc 1 109 15 view .LVU97
+ 383 000e 4268     		ldr	r2, [r0, #4]
+ 110:HvLightPipe.c ****   q->writeHead += (sizeof(hv_uint32_t) + numBytes);
+ 384              		.loc 1 110 40 view .LVU98
+ 385 0010 01F1040C 		add	ip, r1, #4
+ 108:HvLightPipe.c ****   q->remainingBytes -= (sizeof(hv_uint32_t) + numBytes);
+ 386              		.loc 1 108 21 view .LVU99
+ 387 0014 043B     		subs	r3, r3, #4
+ 388 0016 0361     		str	r3, [r0, #16]
+ 109:HvLightPipe.c ****   char *const oldWriteHead = q->writeHead;
+ 389              		.loc 1 109 3 is_stmt 1 view .LVU100
+ 390              	.LVL32:
+ 391              		.loc 1 110 3 view .LVU101
+ 392              		.loc 1 110 16 is_stmt 0 view .LVU102
+ 393 0018 02EB0C03 		add	r3, r2, ip
+ 394 001c 4360     		str	r3, [r0, #4]
+ 111:HvLightPipe.c ****   HLP_SET_UINT32_AT_BUFFER(q->writeHead, HLP_STOP);
+ 395              		.loc 1 111 3 is_stmt 1 view .LVU103
+ 396 001e 0023     		movs	r3, #0
+ 397 0020 42F80C30 		str	r3, [r2, ip]
+ 112:HvLightPipe.c **** 
+ 113:HvLightPipe.c ****   // save everything before this point to memory
+ 114:HvLightPipe.c ****   hv_sfence();
+ 398              		.loc 1 114 3 view .LVU104
+ 399              		.syntax unified
+ 400              	@ 114 "HvLightPipe.c" 1
+ 401 0024 BFF35E8F 		dmb 0xE
+ 402              	@ 0 "" 2
+ 115:HvLightPipe.c **** 
+ 116:HvLightPipe.c ****   // then save this
+ 117:HvLightPipe.c ****   HLP_SET_UINT32_AT_BUFFER(oldWriteHead, numBytes);
+ 403              		.loc 1 117 3 view .LVU105
+ 404              		.thumb
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 11
+
+
+ 405              		.syntax unified
+ 406 0028 1160     		str	r1, [r2]
+ 118:HvLightPipe.c **** }
+ 407              		.loc 1 118 1 is_stmt 0 view .LVU106
+ 408 002a 08BD     		pop	{r3, pc}
+ 409              	.LVL33:
+ 410              	.L29:
+ 107:HvLightPipe.c ****   q->remainingBytes -= (sizeof(hv_uint32_t) + numBytes);
+ 411              		.loc 1 107 3 discriminator 1 view .LVU107
+ 412 002c 024B     		ldr	r3, .L30
+ 413 002e 6B21     		movs	r1, #107
+ 414              	.LVL34:
+ 107:HvLightPipe.c ****   q->remainingBytes -= (sizeof(hv_uint32_t) + numBytes);
+ 415              		.loc 1 107 3 discriminator 1 view .LVU108
+ 416 0030 024A     		ldr	r2, .L30+4
+ 417              	.LVL35:
+ 107:HvLightPipe.c ****   q->remainingBytes -= (sizeof(hv_uint32_t) + numBytes);
+ 418              		.loc 1 107 3 discriminator 1 view .LVU109
+ 419 0032 0348     		ldr	r0, .L30+8
+ 420              	.LVL36:
+ 107:HvLightPipe.c ****   q->remainingBytes -= (sizeof(hv_uint32_t) + numBytes);
+ 421              		.loc 1 107 3 discriminator 1 view .LVU110
+ 422 0034 FFF7FEFF 		bl	__assert_func
+ 423              	.LVL37:
+ 424              	.L31:
+ 425              		.align	2
+ 426              	.L30:
+ 427 0038 00000000 		.word	.LC2
+ 428 003c 00000000 		.word	.LANCHOR1
+ 429 0040 1C000000 		.word	.LC1
+ 430              		.cfi_endproc
+ 431              	.LFE349:
+ 433              		.section	.text.hLp_getReadBuffer,"ax",%progbits
+ 434              		.align	1
+ 435              		.p2align 2,,3
+ 436              		.global	hLp_getReadBuffer
+ 437              		.syntax unified
+ 438              		.thumb
+ 439              		.thumb_func
+ 440              		.fpu fpv5-d16
+ 442              	hLp_getReadBuffer:
+ 443              	.LVL38:
+ 444              	.LFB350:
+ 119:HvLightPipe.c **** 
+ 120:HvLightPipe.c **** char *hLp_getReadBuffer(HvLightPipe *q, hv_uint32_t *numBytes) {
+ 445              		.loc 1 120 64 is_stmt 1 view -0
+ 446              		.cfi_startproc
+ 447              		@ args = 0, pretend = 0, frame = 0
+ 448              		@ frame_needed = 0, uses_anonymous_args = 0
+ 449              		@ link register save eliminated.
+ 121:HvLightPipe.c ****   *numBytes = HLP_GET_UINT32_AT_BUFFER(q->readHead);
+ 450              		.loc 1 121 3 view .LVU112
+ 451              		.loc 1 121 15 is_stmt 0 view .LVU113
+ 452 0000 8068     		ldr	r0, [r0, #8]
+ 453              	.LVL39:
+ 454              		.loc 1 121 15 view .LVU114
+ 455 0002 50F8043B 		ldr	r3, [r0], #4
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 12
+
+
+ 456              		.loc 1 121 13 view .LVU115
+ 457 0006 0B60     		str	r3, [r1]
+ 122:HvLightPipe.c ****   char *const readBuffer = q->readHead + sizeof(hv_uint32_t);
+ 458              		.loc 1 122 3 is_stmt 1 view .LVU116
+ 459              	.LVL40:
+ 123:HvLightPipe.c ****   return readBuffer;
+ 460              		.loc 1 123 3 view .LVU117
+ 124:HvLightPipe.c **** }
+ 461              		.loc 1 124 1 is_stmt 0 view .LVU118
+ 462 0008 7047     		bx	lr
+ 463              		.cfi_endproc
+ 464              	.LFE350:
+ 466 000a 00BF     		.section	.rodata.hLp_consume.str1.4,"aMS",%progbits,1
+ 467              		.align	2
+ 468              	.LC3:
+ 469 0000 282A2828 		.ascii	"(*((uint32_t *) (q->readHead))) != 0\000"
+ 469      75696E74 
+ 469      33325F74 
+ 469      202A2920 
+ 469      28712D3E 
+ 470              		.section	.text.hLp_consume,"ax",%progbits
+ 471              		.align	1
+ 472              		.p2align 2,,3
+ 473              		.global	hLp_consume
+ 474              		.syntax unified
+ 475              		.thumb
+ 476              		.thumb_func
+ 477              		.fpu fpv5-d16
+ 479              	hLp_consume:
+ 480              	.LVL41:
+ 481              	.LFB351:
+ 125:HvLightPipe.c **** 
+ 126:HvLightPipe.c **** void hLp_consume(HvLightPipe *q) {
+ 482              		.loc 1 126 34 is_stmt 1 view -0
+ 483              		.cfi_startproc
+ 484              		@ args = 0, pretend = 0, frame = 0
+ 485              		@ frame_needed = 0, uses_anonymous_args = 0
+ 127:HvLightPipe.c ****   hv_assert(HLP_GET_UINT32_AT_BUFFER(q->readHead) != HLP_STOP);
+ 486              		.loc 1 127 3 view .LVU120
+ 126:HvLightPipe.c ****   hv_assert(HLP_GET_UINT32_AT_BUFFER(q->readHead) != HLP_STOP);
+ 487              		.loc 1 126 34 is_stmt 0 view .LVU121
+ 488 0000 08B5     		push	{r3, lr}
+ 489              		.cfi_def_cfa_offset 8
+ 490              		.cfi_offset 3, -8
+ 491              		.cfi_offset 14, -4
+ 492              		.loc 1 127 3 view .LVU122
+ 493 0002 8368     		ldr	r3, [r0, #8]
+ 494 0004 1A68     		ldr	r2, [r3]
+ 495 0006 1AB1     		cbz	r2, .L36
+ 128:HvLightPipe.c ****   q->readHead += sizeof(hv_uint32_t) + HLP_GET_UINT32_AT_BUFFER(q->readHead);
+ 496              		.loc 1 128 3 is_stmt 1 view .LVU123
+ 497              		.loc 1 128 38 is_stmt 0 view .LVU124
+ 498 0008 0432     		adds	r2, r2, #4
+ 499              		.loc 1 128 15 view .LVU125
+ 500 000a 1344     		add	r3, r3, r2
+ 501 000c 8360     		str	r3, [r0, #8]
+ 129:HvLightPipe.c **** }
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 13
+
+
+ 502              		.loc 1 129 1 view .LVU126
+ 503 000e 08BD     		pop	{r3, pc}
+ 504              	.L36:
+ 127:HvLightPipe.c ****   q->readHead += sizeof(hv_uint32_t) + HLP_GET_UINT32_AT_BUFFER(q->readHead);
+ 505              		.loc 1 127 3 discriminator 1 view .LVU127
+ 506 0010 024B     		ldr	r3, .L37
+ 507 0012 7F21     		movs	r1, #127
+ 508 0014 024A     		ldr	r2, .L37+4
+ 509 0016 0348     		ldr	r0, .L37+8
+ 510              	.LVL42:
+ 127:HvLightPipe.c ****   q->readHead += sizeof(hv_uint32_t) + HLP_GET_UINT32_AT_BUFFER(q->readHead);
+ 511              		.loc 1 127 3 discriminator 1 view .LVU128
+ 512 0018 FFF7FEFF 		bl	__assert_func
+ 513              	.LVL43:
+ 514              	.L38:
+ 515              		.align	2
+ 516              	.L37:
+ 517 001c 00000000 		.word	.LC3
+ 518 0020 00000000 		.word	.LANCHOR2
+ 519 0024 1C000000 		.word	.LC1
+ 520              		.cfi_endproc
+ 521              	.LFE351:
+ 523              		.section	.text.hLp_reset,"ax",%progbits
+ 524              		.align	1
+ 525              		.p2align 2,,3
+ 526              		.global	hLp_reset
+ 527              		.syntax unified
+ 528              		.thumb
+ 529              		.thumb_func
+ 530              		.fpu fpv5-d16
+ 532              	hLp_reset:
+ 533              	.LVL44:
+ 534              	.LFB352:
+ 130:HvLightPipe.c **** 
+ 131:HvLightPipe.c **** void hLp_reset(HvLightPipe *q) {
+ 535              		.loc 1 131 32 is_stmt 1 view -0
+ 536              		.cfi_startproc
+ 537              		@ args = 0, pretend = 0, frame = 0
+ 538              		@ frame_needed = 0, uses_anonymous_args = 0
+ 539              		@ link register save eliminated.
+ 132:HvLightPipe.c ****   q->writeHead = q->buffer;
+ 540              		.loc 1 132 3 view .LVU130
+ 131:HvLightPipe.c ****   q->writeHead = q->buffer;
+ 541              		.loc 1 131 32 is_stmt 0 view .LVU131
+ 542 0000 0346     		mov	r3, r0
+ 543              		.loc 1 132 19 view .LVU132
+ 544 0002 0068     		ldr	r0, [r0]
+ 545              	.LVL45:
+ 133:HvLightPipe.c ****   q->readHead = q->buffer;
+ 134:HvLightPipe.c ****   q->remainingBytes = q->len;
+ 135:HvLightPipe.c ****   memset(q->buffer, 0, q->len);
+ 546              		.loc 1 135 3 view .LVU133
+ 547 0004 0021     		movs	r1, #0
+ 134:HvLightPipe.c ****   memset(q->buffer, 0, q->len);
+ 548              		.loc 1 134 24 view .LVU134
+ 549 0006 DA68     		ldr	r2, [r3, #12]
+ 133:HvLightPipe.c ****   q->readHead = q->buffer;
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 14
+
+
+ 550              		.loc 1 133 15 view .LVU135
+ 551 0008 C3E90100 		strd	r0, r0, [r3, #4]
+ 134:HvLightPipe.c ****   memset(q->buffer, 0, q->len);
+ 552              		.loc 1 134 3 is_stmt 1 view .LVU136
+ 134:HvLightPipe.c ****   memset(q->buffer, 0, q->len);
+ 553              		.loc 1 134 21 is_stmt 0 view .LVU137
+ 554 000c 1A61     		str	r2, [r3, #16]
+ 555              		.loc 1 135 3 is_stmt 1 view .LVU138
+ 556 000e FFF7FEBF 		b	memset
+ 557              	.LVL46:
+ 558              		.loc 1 135 3 is_stmt 0 view .LVU139
+ 559              		.cfi_endproc
+ 560              	.LFE352:
+ 562 0012 00BF     		.section	.rodata.__func__.0,"a"
+ 563              		.align	2
+ 564              		.set	.LANCHOR2,. + 0
+ 567              	__func__.0:
+ 568 0000 684C705F 		.ascii	"hLp_consume\000"
+ 568      636F6E73 
+ 568      756D6500 
+ 569              		.section	.rodata.__func__.1,"a"
+ 570              		.align	2
+ 571              		.set	.LANCHOR1,. + 0
+ 574              	__func__.1:
+ 575 0000 684C705F 		.ascii	"hLp_produce\000"
+ 575      70726F64 
+ 575      75636500 
+ 576              		.section	.rodata.__func__.2,"a"
+ 577              		.align	2
+ 578              		.set	.LANCHOR0,. + 0
+ 581              	__func__.2:
+ 582 0000 684C705F 		.ascii	"hLp_init\000"
+ 582      696E6974 
+ 582      00
+ 583              		.text
+ 584              	.Letext0:
+ 585              		.file 2 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 586              		.file 3 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 587              		.file 4 "HvLightPipe.h"
+ 588              		.file 5 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\assert.h"
+ 589              		.file 6 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\stdlib.h"
+ 590              		.file 7 "<built-in>"
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s 			page 15
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 HvLightPipe.c
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:17     .rodata.hLp_init.str1.4:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:24     .text.hLp_init:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:33     .text.hLp_init:00000000 hLp_init
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:108    .text.hLp_init:0000003c $d
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:115    .text.hLp_free:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:123    .text.hLp_free:00000000 hLp_free
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:141    .text.hLp_hasData:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:149    .text.hLp_hasData:00000000 hLp_hasData
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:187    .text.hLp_getWriteBuffer:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:195    .text.hLp_getWriteBuffer:00000000 hLp_getWriteBuffer
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:348    .rodata.hLp_produce.str1.4:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:353    .text.hLp_produce:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:361    .text.hLp_produce:00000000 hLp_produce
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:427    .text.hLp_produce:00000038 $d
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:434    .text.hLp_getReadBuffer:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:442    .text.hLp_getReadBuffer:00000000 hLp_getReadBuffer
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:467    .rodata.hLp_consume.str1.4:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:471    .text.hLp_consume:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:479    .text.hLp_consume:00000000 hLp_consume
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:517    .text.hLp_consume:0000001c $d
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:524    .text.hLp_reset:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:532    .text.hLp_reset:00000000 hLp_reset
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:563    .rodata.__func__.0:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:567    .rodata.__func__.0:00000000 __func__.0
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:570    .rodata.__func__.1:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:574    .rodata.__func__.1:00000000 __func__.1
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:577    .rodata.__func__.2:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccHlt6SO.s:581    .rodata.__func__.2:00000000 __func__.2
+
+UNDEFINED SYMBOLS
+malloc
+__assert_func
+free
+memset

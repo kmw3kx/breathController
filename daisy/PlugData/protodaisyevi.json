@@ -6,7 +6,7 @@
     },
 	"display": {},
 	"audio": {
-    "channels": 2
+    "channels": 3
   },
 	"components": {
 		"capin1": {
@@ -35,7 +35,7 @@
 		},
 		"breath": {
 			"component": "AnalogControl",
-			"pin": 16
+			"pin": 17
 		},
 		"encoder": {
 			"component": "Encoder",

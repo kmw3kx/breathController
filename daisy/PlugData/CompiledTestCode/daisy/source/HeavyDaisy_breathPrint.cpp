@@ -92,16 +92,16 @@ void HandleMidiMessage(MidiEvent m)
 {
   ScopedIrqBlocker block; //< Disables interrupts while in scope
 
-  for (int i = 0; i <= 2; ++i) {
+  for (int i = 0; i < 2; ++i) {
     hv->sendMessageToReceiverV(HV_HASH_MIDIIN, 0, "ff",
-    (float) m.data[i],
-    (float) m.channel);
+      (float) m.data[i],
+      (float) m.channel);
   }
 
   switch(m.type)
   {
     case SystemRealTime: {
-      float srtType;
+      float srtType = 0.0f;
 
       switch(m.srt_type)
       {
@@ -122,6 +122,9 @@ void HandleMidiMessage(MidiEvent m)
           break;
         case Reset:
           srtType = MIDI_RT_RESET;
+          break;
+        default:
+          srtType = 0.0f;
           break;
       }
 
@@ -212,6 +215,7 @@ int main(void)
     now = System::GetNow();
 
     hardware.LoopProcess();
+    LoopWriteIn(hv);
     hardware.midi.Listen();
     while(hardware.midi.HasEvents())
     {
@@ -425,6 +429,9 @@ void LoopWriteIn(Heavy_breathPrint* hv)
 {
   ScopedIrqBlocker block; //< Disables interrupts while in scope
 
+  if (hv != nullptr) {
+    hv->sendFloatToReceiver((uint32_t) HV_BREATHPRINT_PARAM_IN_BREATH, hardware.breath.Value());
+  }
 }
 
 /** Sends signals from the Daisy hardware to the PD patch via the receive objects during the audio callback

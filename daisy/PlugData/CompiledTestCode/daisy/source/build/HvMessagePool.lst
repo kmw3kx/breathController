@@ -1,0 +1,1719 @@
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 28, 1
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 2
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"HvMessagePool.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.rodata.ml_push.part.0.str1.4,"aMS",%progbits,1
+  17              		.align	2
+  18              	.LC0:
+  19 0000 6E20213D 		.ascii	"n != ((void *)0)\000"
+  19      20282876 
+  19      6F696420 
+  19      2A293029 
+  19      00
+  20 0011 000000   		.align	2
+  21              	.LC1:
+  22 0014 48764D65 		.ascii	"HvMessagePool.c\000"
+  22      73736167 
+  22      65506F6F 
+  22      6C2E6300 
+  23              		.section	.text.ml_push.part.0,"ax",%progbits
+  24              		.align	1
+  25              		.p2align 2,,3
+  26              		.arch armv7e-m
+  27              		.syntax unified
+  28              		.thumb
+  29              		.thumb_func
+  30              		.fpu fpv5-d16
+  32              	ml_push.part.0:
+  33              	.LFB371:
+  34              		.file 1 "HvMessagePool.c"
+   1:HvMessagePool.c **** /**
+   2:HvMessagePool.c ****  * Copyright (c) 2014-2018 Enzien Audio Ltd.
+   3:HvMessagePool.c ****  *
+   4:HvMessagePool.c ****  * Permission to use, copy, modify, and/or distribute this software for any
+   5:HvMessagePool.c ****  * purpose with or without fee is hereby granted, provided that the above
+   6:HvMessagePool.c ****  * copyright notice and this permission notice appear in all copies.
+   7:HvMessagePool.c ****  *
+   8:HvMessagePool.c ****  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+   9:HvMessagePool.c ****  * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  10:HvMessagePool.c ****  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  11:HvMessagePool.c ****  * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  12:HvMessagePool.c ****  * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  13:HvMessagePool.c ****  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  14:HvMessagePool.c ****  * PERFORMANCE OF THIS SOFTWARE.
+  15:HvMessagePool.c ****  */
+  16:HvMessagePool.c **** 
+  17:HvMessagePool.c **** #include "HvMessagePool.h"
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 2
+
+
+  18:HvMessagePool.c **** #include "HvMessage.h"
+  19:HvMessagePool.c **** 
+  20:HvMessagePool.c **** // the number of bytes reserved at a time from the pool
+  21:HvMessagePool.c **** #define MP_BLOCK_SIZE_BYTES 512
+  22:HvMessagePool.c **** 
+  23:HvMessagePool.c **** #if HV_APPLE
+  24:HvMessagePool.c **** #pragma mark - MessageList
+  25:HvMessagePool.c **** #endif
+  26:HvMessagePool.c **** 
+  27:HvMessagePool.c **** typedef struct MessageListNode {
+  28:HvMessagePool.c ****   char *p;
+  29:HvMessagePool.c ****   struct MessageListNode *next;
+  30:HvMessagePool.c **** } MessageListNode;
+  31:HvMessagePool.c **** 
+  32:HvMessagePool.c **** static inline bool ml_hasAvailable(HvMessagePoolList *ml) {
+  33:HvMessagePool.c ****   return (ml->head != NULL);
+  34:HvMessagePool.c **** }
+  35:HvMessagePool.c **** 
+  36:HvMessagePool.c **** static char *ml_pop(HvMessagePoolList *ml) {
+  37:HvMessagePool.c ****   MessageListNode *n = ml->head;
+  38:HvMessagePool.c ****   ml->head = n->next;
+  39:HvMessagePool.c ****   n->next = ml->pool;
+  40:HvMessagePool.c ****   ml->pool = n;
+  41:HvMessagePool.c ****   char *const p = n->p;
+  42:HvMessagePool.c ****   n->p = NULL; // set to NULL to make it clear that this node does not have a valid buffer
+  43:HvMessagePool.c ****   return p;
+  44:HvMessagePool.c **** }
+  45:HvMessagePool.c **** 
+  46:HvMessagePool.c **** /** Push a MessageListNode with the given pointer onto the head of the queue. */
+  47:HvMessagePool.c **** static void ml_push(HvMessagePoolList *ml, void *p) {
+  35              		.loc 1 47 13 view -0
+  36              		.cfi_startproc
+  37              		@ Volatile: function does not return.
+  38              		@ args = 0, pretend = 0, frame = 0
+  39              		@ frame_needed = 0, uses_anonymous_args = 0
+  40              	.LVL0:
+  41              		.loc 1 47 13 is_stmt 0 view .LVU1
+  42 0000 08B5     		push	{r3, lr}
+  43              		.cfi_def_cfa_offset 8
+  44              		.cfi_offset 3, -8
+  45              		.cfi_offset 14, -4
+  48:HvMessagePool.c ****   MessageListNode *n = NULL;
+  49:HvMessagePool.c ****   if (ml->pool != NULL) {
+  50:HvMessagePool.c ****     // take an empty MessageListNode from the pool
+  51:HvMessagePool.c ****     n = ml->pool;
+  52:HvMessagePool.c ****     ml->pool = n->next;
+  53:HvMessagePool.c ****   } else {
+  54:HvMessagePool.c ****     // a MessageListNode is not available, allocate one
+  55:HvMessagePool.c ****     n = (MessageListNode *) hv_malloc(sizeof(MessageListNode));
+  56:HvMessagePool.c ****     hv_assert(n != NULL);
+  46              		.loc 1 56 5 view .LVU2
+  47 0002 034A     		ldr	r2, .L4
+  48 0004 3821     		movs	r1, #56
+  49 0006 034B     		ldr	r3, .L4+4
+  50 0008 0348     		ldr	r0, .L4+8
+  51 000a FFF7FEFF 		bl	__assert_func
+  52              	.LVL1:
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 3
+
+
+  53              	.L5:
+  54 000e 00BF     		.align	2
+  55              	.L4:
+  56 0010 00000000 		.word	.LANCHOR0
+  57 0014 00000000 		.word	.LC0
+  58 0018 14000000 		.word	.LC1
+  59              		.cfi_endproc
+  60              	.LFE371:
+  62              		.section	.rodata.mp_init.str1.4,"aMS",%progbits,1
+  63              		.align	2
+  64              	.LC2:
+  65 0000 6D702D3E 		.ascii	"mp->buffer != ((void *)0)\000"
+  65      62756666 
+  65      65722021 
+  65      3D202828 
+  65      766F6964 
+  66              		.section	.text.mp_init,"ax",%progbits
+  67              		.align	1
+  68              		.p2align 2,,3
+  69              		.global	mp_init
+  70              		.syntax unified
+  71              		.thumb
+  72              		.thumb_func
+  73              		.fpu fpv5-d16
+  75              	mp_init:
+  76              	.LVL2:
+  77              	.LFB367:
+  57:HvMessagePool.c ****   }
+  58:HvMessagePool.c ****   n->p = (char *) p;
+  59:HvMessagePool.c ****   n->next = ml->head;
+  60:HvMessagePool.c ****   ml->head = n; // push to the front of the queue
+  61:HvMessagePool.c **** }
+  62:HvMessagePool.c **** 
+  63:HvMessagePool.c **** static void ml_free(HvMessagePoolList *ml) {
+  64:HvMessagePool.c ****   if (ml != NULL) {
+  65:HvMessagePool.c ****     while (ml_hasAvailable(ml)) {
+  66:HvMessagePool.c ****       ml_pop(ml);
+  67:HvMessagePool.c ****     }
+  68:HvMessagePool.c ****     while (ml->pool != NULL) {
+  69:HvMessagePool.c ****       MessageListNode *n = ml->pool;
+  70:HvMessagePool.c ****       ml->pool = n->next;
+  71:HvMessagePool.c ****       hv_free(n);
+  72:HvMessagePool.c ****     }
+  73:HvMessagePool.c ****   }
+  74:HvMessagePool.c **** }
+  75:HvMessagePool.c **** 
+  76:HvMessagePool.c **** #if HV_APPLE
+  77:HvMessagePool.c **** #pragma mark - HvMessagePool
+  78:HvMessagePool.c **** #endif
+  79:HvMessagePool.c **** 
+  80:HvMessagePool.c **** static hv_size_t mp_messagelistIndexForSize(hv_size_t byteSize) {
+  81:HvMessagePool.c ****   return (hv_size_t) hv_max_i((hv_min_max_log2((hv_uint32_t) byteSize) - 5), 0);
+  82:HvMessagePool.c **** }
+  83:HvMessagePool.c **** 
+  84:HvMessagePool.c **** hv_size_t mp_init(HvMessagePool *mp, hv_size_t numKB) {
+  78              		.loc 1 84 55 is_stmt 1 view -0
+  79              		.cfi_startproc
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 4
+
+
+  80              		@ args = 0, pretend = 0, frame = 0
+  81              		@ frame_needed = 0, uses_anonymous_args = 0
+  85:HvMessagePool.c ****   mp->bufferSize = numKB * 1024;
+  82              		.loc 1 85 3 view .LVU4
+  84:HvMessagePool.c ****   mp->bufferSize = numKB * 1024;
+  83              		.loc 1 84 55 is_stmt 0 view .LVU5
+  84 0000 38B5     		push	{r3, r4, r5, lr}
+  85              		.cfi_def_cfa_offset 16
+  86              		.cfi_offset 3, -16
+  87              		.cfi_offset 4, -12
+  88              		.cfi_offset 5, -8
+  89              		.cfi_offset 14, -4
+  84:HvMessagePool.c ****   mp->bufferSize = numKB * 1024;
+  90              		.loc 1 84 55 view .LVU6
+  91 0002 0446     		mov	r4, r0
+  92              		.loc 1 85 26 view .LVU7
+  93 0004 8D02     		lsls	r5, r1, #10
+  86:HvMessagePool.c ****   mp->buffer = (char *) hv_malloc(mp->bufferSize);
+  94              		.loc 1 86 25 view .LVU8
+  95 0006 2846     		mov	r0, r5
+  96              	.LVL3:
+  85:HvMessagePool.c ****   mp->bufferSize = numKB * 1024;
+  97              		.loc 1 85 18 view .LVU9
+  98 0008 6560     		str	r5, [r4, #4]
+  99              		.loc 1 86 3 is_stmt 1 view .LVU10
+ 100              		.loc 1 86 25 is_stmt 0 view .LVU11
+ 101 000a FFF7FEFF 		bl	malloc
+ 102              	.LVL4:
+ 103              		.loc 1 86 14 view .LVU12
+ 104 000e 2060     		str	r0, [r4]
+  87:HvMessagePool.c ****   hv_assert(mp->buffer != NULL);
+ 105              		.loc 1 87 3 is_stmt 1 view .LVU13
+ 106 0010 58B1     		cbz	r0, .L9
+  88:HvMessagePool.c ****   mp->bufferIndex = 0;
+ 107              		.loc 1 88 3 view .LVU14
+ 108              		.loc 1 88 19 is_stmt 0 view .LVU15
+ 109 0012 0023     		movs	r3, #0
+  89:HvMessagePool.c **** 
+  90:HvMessagePool.c ****   // initialise all message lists
+  91:HvMessagePool.c ****   for (int i = 0; i < MP_NUM_MESSAGE_LISTS; i++) {
+  92:HvMessagePool.c ****     mp->lists[i].head = NULL;
+  93:HvMessagePool.c ****     mp->lists[i].pool = NULL;
+  94:HvMessagePool.c ****   }
+  95:HvMessagePool.c **** 
+  96:HvMessagePool.c ****   return mp->bufferSize;
+  97:HvMessagePool.c **** }
+ 110              		.loc 1 97 1 view .LVU16
+ 111 0014 2846     		mov	r0, r5
+ 112              	.LBB36:
+  92:HvMessagePool.c ****     mp->lists[i].pool = NULL;
+ 113              		.loc 1 92 23 view .LVU17
+ 114 0016 C4E90233 		strd	r3, r3, [r4, #8]
+  93:HvMessagePool.c ****   }
+ 115              		.loc 1 93 5 is_stmt 1 view .LVU18
+  92:HvMessagePool.c ****     mp->lists[i].pool = NULL;
+ 116              		.loc 1 92 23 is_stmt 0 view .LVU19
+ 117 001a C4E90433 		strd	r3, r3, [r4, #16]
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 5
+
+
+  93:HvMessagePool.c ****   }
+ 118              		.loc 1 93 5 is_stmt 1 view .LVU20
+  92:HvMessagePool.c ****     mp->lists[i].pool = NULL;
+ 119              		.loc 1 92 23 is_stmt 0 view .LVU21
+ 120 001e C4E90633 		strd	r3, r3, [r4, #24]
+  93:HvMessagePool.c ****   }
+ 121              		.loc 1 93 5 is_stmt 1 view .LVU22
+  92:HvMessagePool.c ****     mp->lists[i].pool = NULL;
+ 122              		.loc 1 92 23 is_stmt 0 view .LVU23
+ 123 0022 C4E90833 		strd	r3, r3, [r4, #32]
+  93:HvMessagePool.c ****   }
+ 124              		.loc 1 93 5 is_stmt 1 view .LVU24
+  93:HvMessagePool.c ****   }
+ 125              		.loc 1 93 23 is_stmt 0 view .LVU25
+ 126 0026 A362     		str	r3, [r4, #40]
+  91:HvMessagePool.c ****     mp->lists[i].head = NULL;
+ 127              		.loc 1 91 45 is_stmt 1 view .LVU26
+ 128              	.LVL5:
+  91:HvMessagePool.c ****     mp->lists[i].head = NULL;
+ 129              		.loc 1 91 19 view .LVU27
+ 130              	.LBE36:
+  96:HvMessagePool.c **** }
+ 131              		.loc 1 96 3 view .LVU28
+ 132              		.loc 1 97 1 is_stmt 0 view .LVU29
+ 133 0028 38BD     		pop	{r3, r4, r5, pc}
+ 134              	.LVL6:
+ 135              	.L9:
+  87:HvMessagePool.c ****   mp->bufferIndex = 0;
+ 136              		.loc 1 87 3 discriminator 1 view .LVU30
+ 137 002a 034B     		ldr	r3, .L10
+ 138 002c 5721     		movs	r1, #87
+ 139 002e 034A     		ldr	r2, .L10+4
+ 140 0030 0348     		ldr	r0, .L10+8
+ 141 0032 FFF7FEFF 		bl	__assert_func
+ 142              	.LVL7:
+ 143              	.L11:
+ 144 0036 00BF     		.align	2
+ 145              	.L10:
+ 146 0038 00000000 		.word	.LC2
+ 147 003c 00000000 		.word	.LANCHOR1
+ 148 0040 14000000 		.word	.LC1
+ 149              		.cfi_endproc
+ 150              	.LFE367:
+ 152              		.section	.text.mp_free,"ax",%progbits
+ 153              		.align	1
+ 154              		.p2align 2,,3
+ 155              		.global	mp_free
+ 156              		.syntax unified
+ 157              		.thumb
+ 158              		.thumb_func
+ 159              		.fpu fpv5-d16
+ 161              	mp_free:
+ 162              	.LVL8:
+ 163              	.LFB368:
+  98:HvMessagePool.c **** 
+  99:HvMessagePool.c **** void mp_free(HvMessagePool *mp) {
+ 164              		.loc 1 99 33 is_stmt 1 view -0
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 6
+
+
+ 165              		.cfi_startproc
+ 166              		@ args = 0, pretend = 0, frame = 0
+ 167              		@ frame_needed = 0, uses_anonymous_args = 0
+ 100:HvMessagePool.c ****   hv_free(mp->buffer);
+ 168              		.loc 1 100 3 view .LVU32
+  99:HvMessagePool.c ****   hv_free(mp->buffer);
+ 169              		.loc 1 99 33 is_stmt 0 view .LVU33
+ 170 0000 70B5     		push	{r4, r5, r6, lr}
+ 171              		.cfi_def_cfa_offset 16
+ 172              		.cfi_offset 4, -16
+ 173              		.cfi_offset 5, -12
+ 174              		.cfi_offset 6, -8
+ 175              		.cfi_offset 14, -4
+ 176 0002 0446     		mov	r4, r0
+ 177              	.LBB45:
+ 178              	.LBB46:
+ 179              	.LBB47:
+ 180              	.LBB48:
+ 181              	.LBB49:
+  42:HvMessagePool.c ****   return p;
+ 182              		.loc 1 42 8 view .LVU34
+ 183 0004 0025     		movs	r5, #0
+ 184              	.LBE49:
+ 185              	.LBE48:
+ 186              	.LBE47:
+ 187              	.LBE46:
+ 188              	.LBE45:
+ 189              		.loc 1 100 3 view .LVU35
+ 190 0006 0068     		ldr	r0, [r0]
+ 191              	.LVL9:
+ 192              		.loc 1 100 3 view .LVU36
+ 193 0008 04F12006 		add	r6, r4, #32
+ 194 000c FFF7FEFF 		bl	free
+ 195              	.LVL10:
+ 101:HvMessagePool.c ****   for (int i = 0; i < MP_NUM_MESSAGE_LISTS; i++) {
+ 196              		.loc 1 101 3 is_stmt 1 view .LVU37
+ 197              	.LBB61:
+ 198              		.loc 1 101 8 view .LVU38
+ 199              		.loc 1 101 19 view .LVU39
+ 200              	.L18:
+ 102:HvMessagePool.c ****     ml_free(&mp->lists[i]);
+ 201              		.loc 1 102 5 discriminator 3 view .LVU40
+ 202              	.LBB59:
+ 203              	.LBI46:
+  63:HvMessagePool.c ****   if (ml != NULL) {
+ 204              		.loc 1 63 13 discriminator 3 view .LVU41
+ 205              	.LBB57:
+  64:HvMessagePool.c ****     while (ml_hasAvailable(ml)) {
+ 206              		.loc 1 64 3 discriminator 3 view .LVU42
+  65:HvMessagePool.c ****       ml_pop(ml);
+ 207              		.loc 1 65 11 discriminator 3 view .LVU43
+ 208              	.LBB51:
+ 209              	.LBI51:
+  32:HvMessagePool.c ****   return (ml->head != NULL);
+ 210              		.loc 1 32 20 discriminator 3 view .LVU44
+ 211              	.LBB52:
+  33:HvMessagePool.c **** }
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 7
+
+
+ 212              		.loc 1 33 3 discriminator 3 view .LVU45
+  33:HvMessagePool.c **** }
+ 213              		.loc 1 33 13 is_stmt 0 discriminator 3 view .LVU46
+ 214 0010 E068     		ldr	r0, [r4, #12]
+  33:HvMessagePool.c **** }
+ 215              		.loc 1 33 13 discriminator 3 view .LVU47
+ 216              	.LBE52:
+ 217              	.LBE51:
+  65:HvMessagePool.c ****       ml_pop(ml);
+ 218              		.loc 1 65 11 discriminator 3 view .LVU48
+ 219 0012 A8B1     		cbz	r0, .L13
+ 220 0014 2369     		ldr	r3, [r4, #16]
+ 221 0016 01E0     		b	.L14
+ 222              	.L20:
+ 223 0018 0346     		mov	r3, r0
+ 224 001a 1046     		mov	r0, r2
+ 225              	.L14:
+  66:HvMessagePool.c ****     }
+ 226              		.loc 1 66 7 is_stmt 1 view .LVU49
+ 227              	.LVL11:
+ 228              	.LBB54:
+ 229              	.LBI48:
+  36:HvMessagePool.c ****   MessageListNode *n = ml->head;
+ 230              		.loc 1 36 14 view .LVU50
+ 231              	.LBB50:
+  37:HvMessagePool.c ****   ml->head = n->next;
+ 232              		.loc 1 37 3 view .LVU51
+  38:HvMessagePool.c ****   n->next = ml->pool;
+ 233              		.loc 1 38 3 view .LVU52
+  38:HvMessagePool.c ****   n->next = ml->pool;
+ 234              		.loc 1 38 15 is_stmt 0 view .LVU53
+ 235 001c 4268     		ldr	r2, [r0, #4]
+  39:HvMessagePool.c ****   ml->pool = n;
+ 236              		.loc 1 39 3 is_stmt 1 view .LVU54
+  39:HvMessagePool.c ****   ml->pool = n;
+ 237              		.loc 1 39 11 is_stmt 0 view .LVU55
+ 238 001e C0E90053 		strd	r5, r3, [r0]
+  40:HvMessagePool.c ****   char *const p = n->p;
+ 239              		.loc 1 40 3 is_stmt 1 view .LVU56
+  41:HvMessagePool.c ****   n->p = NULL; // set to NULL to make it clear that this node does not have a valid buffer
+ 240              		.loc 1 41 3 view .LVU57
+ 241              	.LVL12:
+  42:HvMessagePool.c ****   return p;
+ 242              		.loc 1 42 3 view .LVU58
+  43:HvMessagePool.c **** }
+ 243              		.loc 1 43 3 view .LVU59
+  43:HvMessagePool.c **** }
+ 244              		.loc 1 43 3 is_stmt 0 view .LVU60
+ 245              	.LBE50:
+ 246              	.LBE54:
+  65:HvMessagePool.c ****       ml_pop(ml);
+ 247              		.loc 1 65 11 is_stmt 1 view .LVU61
+ 248              	.LBB55:
+  32:HvMessagePool.c ****   return (ml->head != NULL);
+ 249              		.loc 1 32 20 view .LVU62
+ 250              	.LBB53:
+  33:HvMessagePool.c **** }
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 8
+
+
+ 251              		.loc 1 33 3 view .LVU63
+  33:HvMessagePool.c **** }
+ 252              		.loc 1 33 3 is_stmt 0 view .LVU64
+ 253              	.LBE53:
+ 254              	.LBE55:
+  65:HvMessagePool.c ****       ml_pop(ml);
+ 255              		.loc 1 65 11 view .LVU65
+ 256 0022 002A     		cmp	r2, #0
+ 257 0024 F8D1     		bne	.L20
+ 258 0026 E260     		str	r2, [r4, #12]
+  68:HvMessagePool.c ****       MessageListNode *n = ml->pool;
+ 259              		.loc 1 68 11 is_stmt 1 view .LVU66
+ 260 0028 00E0     		b	.L17
+ 261              	.L31:
+ 262              	.LBB56:
+  70:HvMessagePool.c ****       hv_free(n);
+ 263              		.loc 1 70 19 is_stmt 0 view .LVU67
+ 264 002a 4368     		ldr	r3, [r0, #4]
+ 265              	.L17:
+  69:HvMessagePool.c ****       ml->pool = n->next;
+ 266              		.loc 1 69 7 is_stmt 1 view .LVU68
+ 267              	.LVL13:
+  70:HvMessagePool.c ****       hv_free(n);
+ 268              		.loc 1 70 7 view .LVU69
+  70:HvMessagePool.c ****       hv_free(n);
+ 269              		.loc 1 70 16 is_stmt 0 view .LVU70
+ 270 002c 2361     		str	r3, [r4, #16]
+  71:HvMessagePool.c ****     }
+ 271              		.loc 1 71 7 is_stmt 1 view .LVU71
+ 272 002e FFF7FEFF 		bl	free
+ 273              	.LVL14:
+  71:HvMessagePool.c ****     }
+ 274              		.loc 1 71 7 is_stmt 0 view .LVU72
+ 275              	.LBE56:
+  68:HvMessagePool.c ****       MessageListNode *n = ml->pool;
+ 276              		.loc 1 68 11 is_stmt 1 view .LVU73
+  68:HvMessagePool.c ****       MessageListNode *n = ml->pool;
+ 277              		.loc 1 68 14 is_stmt 0 view .LVU74
+ 278 0032 2069     		ldr	r0, [r4, #16]
+  68:HvMessagePool.c ****       MessageListNode *n = ml->pool;
+ 279              		.loc 1 68 11 view .LVU75
+ 280 0034 0028     		cmp	r0, #0
+ 281 0036 F8D1     		bne	.L31
+  68:HvMessagePool.c ****       MessageListNode *n = ml->pool;
+ 282              		.loc 1 68 11 view .LVU76
+ 283              	.LBE57:
+ 284              	.LBE59:
+ 101:HvMessagePool.c ****     ml_free(&mp->lists[i]);
+ 285              		.loc 1 101 45 is_stmt 1 view .LVU77
+ 101:HvMessagePool.c ****     ml_free(&mp->lists[i]);
+ 286              		.loc 1 101 19 view .LVU78
+ 101:HvMessagePool.c ****     ml_free(&mp->lists[i]);
+ 287              		.loc 1 101 3 is_stmt 0 view .LVU79
+ 288 0038 0834     		adds	r4, r4, #8
+ 289 003a B442     		cmp	r4, r6
+ 290 003c E8D1     		bne	.L18
+ 291              	.L33:
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 9
+
+
+ 101:HvMessagePool.c ****     ml_free(&mp->lists[i]);
+ 292              		.loc 1 101 3 view .LVU80
+ 293              	.LBE61:
+ 103:HvMessagePool.c ****   }
+ 104:HvMessagePool.c **** }
+ 294              		.loc 1 104 1 view .LVU81
+ 295 003e 70BD     		pop	{r4, r5, r6, pc}
+ 296              	.LVL15:
+ 297              	.L13:
+ 298              	.LBB62:
+ 299              	.LBB60:
+ 300              	.LBB58:
+  68:HvMessagePool.c ****       MessageListNode *n = ml->pool;
+ 301              		.loc 1 68 11 is_stmt 1 view .LVU82
+  68:HvMessagePool.c ****       MessageListNode *n = ml->pool;
+ 302              		.loc 1 68 14 is_stmt 0 view .LVU83
+ 303 0040 2069     		ldr	r0, [r4, #16]
+  68:HvMessagePool.c ****       MessageListNode *n = ml->pool;
+ 304              		.loc 1 68 11 view .LVU84
+ 305 0042 0028     		cmp	r0, #0
+ 306 0044 F1D1     		bne	.L31
+  68:HvMessagePool.c ****       MessageListNode *n = ml->pool;
+ 307              		.loc 1 68 11 view .LVU85
+ 308              	.LBE58:
+ 309              	.LBE60:
+ 101:HvMessagePool.c ****     ml_free(&mp->lists[i]);
+ 310              		.loc 1 101 45 is_stmt 1 view .LVU86
+ 101:HvMessagePool.c ****     ml_free(&mp->lists[i]);
+ 311              		.loc 1 101 19 view .LVU87
+ 101:HvMessagePool.c ****     ml_free(&mp->lists[i]);
+ 312              		.loc 1 101 3 is_stmt 0 view .LVU88
+ 313 0046 0834     		adds	r4, r4, #8
+ 314 0048 B442     		cmp	r4, r6
+ 315 004a E1D1     		bne	.L18
+ 316 004c F7E7     		b	.L33
+ 317              	.LBE62:
+ 318              		.cfi_endproc
+ 319              	.LFE368:
+ 321 004e 00BF     		.section	.text.mp_freeMessage,"ax",%progbits
+ 322              		.align	1
+ 323              		.p2align 2,,3
+ 324              		.global	mp_freeMessage
+ 325              		.syntax unified
+ 326              		.thumb
+ 327              		.thumb_func
+ 328              		.fpu fpv5-d16
+ 330              	mp_freeMessage:
+ 331              	.LVL16:
+ 332              	.LFB369:
+ 105:HvMessagePool.c **** 
+ 106:HvMessagePool.c **** void mp_freeMessage(HvMessagePool *mp, HvMessage *m) {
+ 333              		.loc 1 106 54 is_stmt 1 view -0
+ 334              		.cfi_startproc
+ 335              		@ args = 0, pretend = 0, frame = 0
+ 336              		@ frame_needed = 0, uses_anonymous_args = 0
+ 337              		.loc 1 106 54 is_stmt 0 view .LVU90
+ 338 0000 38B5     		push	{r3, r4, r5, lr}
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 10
+
+
+ 339              		.cfi_def_cfa_offset 16
+ 340              		.cfi_offset 3, -16
+ 341              		.cfi_offset 4, -12
+ 342              		.cfi_offset 5, -8
+ 343              		.cfi_offset 14, -4
+ 344              		.loc 1 106 54 view .LVU91
+ 345 0002 0D46     		mov	r5, r1
+ 107:HvMessagePool.c ****   const hv_size_t b = msg_getSize(m); // the number of bytes that a message occupies in memory
+ 108:HvMessagePool.c ****   const hv_size_t i = mp_messagelistIndexForSize(b); // the HvMessagePoolList index in the pool
+ 109:HvMessagePool.c ****   HvMessagePoolList *ml = &mp->lists[i];
+ 110:HvMessagePool.c ****   const hv_size_t chunkSize = 32 << i;
+ 346              		.loc 1 110 34 view .LVU92
+ 347 0004 2022     		movs	r2, #32
+ 111:HvMessagePool.c ****   hv_memclear(m, chunkSize); // clear the chunk, just in case
+ 348              		.loc 1 111 3 view .LVU93
+ 349 0006 0021     		movs	r1, #0
+ 350              	.LVL17:
+ 107:HvMessagePool.c ****   const hv_size_t b = msg_getSize(m); // the number of bytes that a message occupies in memory
+ 351              		.loc 1 107 3 is_stmt 1 view .LVU94
+ 352              	.LBB73:
+ 353              	.LBI73:
+ 354              		.file 2 "HvMessage.h"
+   1:HvMessage.h   **** /**
+   2:HvMessage.h   ****  * Copyright (c) 2014-2018 Enzien Audio Ltd.
+   3:HvMessage.h   ****  *
+   4:HvMessage.h   ****  * Permission to use, copy, modify, and/or distribute this software for any
+   5:HvMessage.h   ****  * purpose with or without fee is hereby granted, provided that the above
+   6:HvMessage.h   ****  * copyright notice and this permission notice appear in all copies.
+   7:HvMessage.h   ****  *
+   8:HvMessage.h   ****  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+   9:HvMessage.h   ****  * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  10:HvMessage.h   ****  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  11:HvMessage.h   ****  * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  12:HvMessage.h   ****  * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  13:HvMessage.h   ****  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  14:HvMessage.h   ****  * PERFORMANCE OF THIS SOFTWARE.
+  15:HvMessage.h   ****  */
+  16:HvMessage.h   **** 
+  17:HvMessage.h   **** #ifndef _HEAVY_MESSAGE_H_
+  18:HvMessage.h   **** #define _HEAVY_MESSAGE_H_
+  19:HvMessage.h   **** 
+  20:HvMessage.h   **** #include "HvUtils.h"
+  21:HvMessage.h   **** 
+  22:HvMessage.h   **** #ifdef __cplusplus
+  23:HvMessage.h   **** extern "C" {
+  24:HvMessage.h   **** #endif
+  25:HvMessage.h   **** 
+  26:HvMessage.h   **** typedef enum ElementType {
+  27:HvMessage.h   ****   HV_MSG_BANG = 0,
+  28:HvMessage.h   ****   HV_MSG_FLOAT = 1,
+  29:HvMessage.h   ****   HV_MSG_SYMBOL = 2,
+  30:HvMessage.h   ****   HV_MSG_HASH = 3
+  31:HvMessage.h   **** } ElementType;
+  32:HvMessage.h   **** 
+  33:HvMessage.h   **** typedef struct Element {
+  34:HvMessage.h   ****   ElementType type;
+  35:HvMessage.h   ****   union {
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 11
+
+
+  36:HvMessage.h   ****     float f; // float
+  37:HvMessage.h   ****     const char *s; // symbol
+  38:HvMessage.h   ****     hv_uint32_t h; // hash
+  39:HvMessage.h   ****   } data;
+  40:HvMessage.h   **** } Element;
+  41:HvMessage.h   **** 
+  42:HvMessage.h   **** typedef struct HvMessage {
+  43:HvMessage.h   ****   hv_uint32_t timestamp; // the sample at which this message should be processed
+  44:HvMessage.h   ****   hv_uint16_t numElements;
+  45:HvMessage.h   ****   hv_uint16_t numBytes; // the total number of bytes that this message occupies in memory, includin
+  46:HvMessage.h   ****   Element elem;
+  47:HvMessage.h   **** } HvMessage;
+  48:HvMessage.h   **** 
+  49:HvMessage.h   **** typedef struct ReceiverMessagePair {
+  50:HvMessage.h   ****   hv_uint32_t receiverHash;
+  51:HvMessage.h   ****   HvMessage msg;
+  52:HvMessage.h   **** } ReceiverMessagePair;
+  53:HvMessage.h   **** 
+  54:HvMessage.h   **** #define HV_MESSAGE_ON_STACK(_x) (HvMessage *) hv_alloca(msg_getCoreSize(_x))
+  55:HvMessage.h   **** 
+  56:HvMessage.h   **** /** Returns the number of bytes that this message consumes in memory, not including strings. */
+  57:HvMessage.h   **** static inline hv_size_t msg_getCoreSize(hv_size_t numElements) {
+  58:HvMessage.h   ****   hv_assert(numElements > 0);
+  59:HvMessage.h   ****   return sizeof(HvMessage) + ((numElements-1) * sizeof(Element));
+  60:HvMessage.h   **** }
+  61:HvMessage.h   **** 
+  62:HvMessage.h   **** HvMessage *msg_copy(const HvMessage *m);
+  63:HvMessage.h   **** 
+  64:HvMessage.h   **** /** Copies the message into the given buffer. The buffer must be at least as large as msg_getNumHea
+  65:HvMessage.h   **** void msg_copyToBuffer(const HvMessage *m, char *buffer, hv_size_t len);
+  66:HvMessage.h   **** 
+  67:HvMessage.h   **** void msg_setElementToFrom(HvMessage *n, int indexN, const HvMessage *const m, int indexM);
+  68:HvMessage.h   **** 
+  69:HvMessage.h   **** /** Frees a message on the heap. Does nothing if argument is NULL. */
+  70:HvMessage.h   **** void msg_free(HvMessage *m);
+  71:HvMessage.h   **** 
+  72:HvMessage.h   **** HvMessage *msg_init(HvMessage *m, hv_size_t numElements, hv_uint32_t timestamp);
+  73:HvMessage.h   **** 
+  74:HvMessage.h   **** HvMessage *msg_initWithFloat(HvMessage *m, hv_uint32_t timestamp, float f);
+  75:HvMessage.h   **** 
+  76:HvMessage.h   **** HvMessage *msg_initWithBang(HvMessage *m, hv_uint32_t timestamp);
+  77:HvMessage.h   **** 
+  78:HvMessage.h   **** HvMessage *msg_initWithSymbol(HvMessage *m, hv_uint32_t timestamp, const char *s);
+  79:HvMessage.h   **** 
+  80:HvMessage.h   **** HvMessage *msg_initWithHash(HvMessage *m, hv_uint32_t timestamp, hv_uint32_t h);
+  81:HvMessage.h   **** 
+  82:HvMessage.h   **** static inline hv_uint32_t msg_getTimestamp(const HvMessage *m) {
+  83:HvMessage.h   ****   return m->timestamp;
+  84:HvMessage.h   **** }
+  85:HvMessage.h   **** 
+  86:HvMessage.h   **** static inline void msg_setTimestamp(HvMessage *m, hv_uint32_t timestamp) {
+  87:HvMessage.h   ****   m->timestamp = timestamp;
+  88:HvMessage.h   **** }
+  89:HvMessage.h   **** 
+  90:HvMessage.h   **** static inline int msg_getNumElements(const HvMessage *m) {
+  91:HvMessage.h   ****   return (int) m->numElements;
+  92:HvMessage.h   **** }
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 12
+
+
+  93:HvMessage.h   **** 
+  94:HvMessage.h   **** /** Returns the total number of bytes this message consumes in memory. */
+  95:HvMessage.h   **** static inline hv_uint32_t msg_getSize(const HvMessage *m) {
+ 355              		.loc 2 95 27 view .LVU95
+ 356              	.LBB74:
+  96:HvMessage.h   ****   return m->numBytes;
+ 357              		.loc 2 96 3 view .LVU96
+ 358              		.loc 2 96 3 is_stmt 0 view .LVU97
+ 359              	.LBE74:
+ 360              	.LBE73:
+ 108:HvMessagePool.c ****   HvMessagePoolList *ml = &mp->lists[i];
+ 361              		.loc 1 108 3 is_stmt 1 view .LVU98
+ 362              	.LBB76:
+ 363              	.LBI76:
+  80:HvMessagePool.c ****   return (hv_size_t) hv_max_i((hv_min_max_log2((hv_uint32_t) byteSize) - 5), 0);
+ 364              		.loc 1 80 18 view .LVU99
+ 365              	.LBB77:
+  81:HvMessagePool.c **** }
+ 366              		.loc 1 81 3 view .LVU100
+ 367              	.LBB78:
+ 368              	.LBI78:
+ 369              		.file 3 "HvUtils.h"
+   1:HvUtils.h     **** /**
+   2:HvUtils.h     ****  * Copyright (c) 2014-2018 Enzien Audio Ltd.
+   3:HvUtils.h     ****  *
+   4:HvUtils.h     ****  * Permission to use, copy, modify, and/or distribute this software for any
+   5:HvUtils.h     ****  * purpose with or without fee is hereby granted, provided that the above
+   6:HvUtils.h     ****  * copyright notice and this permission notice appear in all copies.
+   7:HvUtils.h     ****  *
+   8:HvUtils.h     ****  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+   9:HvUtils.h     ****  * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  10:HvUtils.h     ****  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  11:HvUtils.h     ****  * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  12:HvUtils.h     ****  * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  13:HvUtils.h     ****  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  14:HvUtils.h     ****  * PERFORMANCE OF THIS SOFTWARE.
+  15:HvUtils.h     ****  */
+  16:HvUtils.h     **** 
+  17:HvUtils.h     **** #ifndef _HEAVY_UTILS_H_
+  18:HvUtils.h     **** #define _HEAVY_UTILS_H_
+  19:HvUtils.h     **** 
+  20:HvUtils.h     **** // platform definitions
+  21:HvUtils.h     **** #if _WIN32 || _WIN64 || _MSC_VER
+  22:HvUtils.h     ****   #define HV_WIN 1
+  23:HvUtils.h     **** #elif __APPLE__
+  24:HvUtils.h     ****   #define HV_APPLE 1
+  25:HvUtils.h     **** #elif __ANDROID__
+  26:HvUtils.h     ****   #define HV_ANDROID 1
+  27:HvUtils.h     **** #elif __unix__ || __unix
+  28:HvUtils.h     ****   #define HV_UNIX 1
+  29:HvUtils.h     **** #else
+  30:HvUtils.h     ****   #ifndef HV_BARE_METAL
+  31:HvUtils.h     ****   #warning Could not detect platform. Assuming Unix-like.
+  32:HvUtils.h     ****   #endif
+  33:HvUtils.h     **** #endif
+  34:HvUtils.h     **** 
+  35:HvUtils.h     **** #ifdef EMSCRIPTEN
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 13
+
+
+  36:HvUtils.h     **** #define HV_EMSCRIPTEN 1
+  37:HvUtils.h     **** #endif
+  38:HvUtils.h     **** 
+  39:HvUtils.h     **** // basic includes
+  40:HvUtils.h     **** #include <stdarg.h>
+  41:HvUtils.h     **** #include <stdio.h>
+  42:HvUtils.h     **** #include <stdlib.h>
+  43:HvUtils.h     **** 
+  44:HvUtils.h     **** // type definitions
+  45:HvUtils.h     **** #include <stdint.h>
+  46:HvUtils.h     **** #include <stdbool.h>
+  47:HvUtils.h     **** #define hv_uint8_t uint8_t
+  48:HvUtils.h     **** #define hv_int16_t int16_t
+  49:HvUtils.h     **** #define hv_uint16_t uint16_t
+  50:HvUtils.h     **** #define hv_int32_t int32_t
+  51:HvUtils.h     **** #define hv_uint32_t uint32_t
+  52:HvUtils.h     **** #define hv_uint64_t uint64_t
+  53:HvUtils.h     **** #define hv_size_t size_t
+  54:HvUtils.h     **** #define hv_uintptr_t uintptr_t
+  55:HvUtils.h     **** 
+  56:HvUtils.h     **** // SIMD-specific includes
+  57:HvUtils.h     **** #if !(HV_SIMD_NONE || HV_SIMD_NEON || HV_SIMD_SSE || HV_SIMD_AVX)
+  58:HvUtils.h     ****   #define HV_SIMD_NEON __ARM_NEON__
+  59:HvUtils.h     ****   #define HV_SIMD_SSE (__SSE__ && __SSE2__ && __SSE3__ && __SSSE3__ && __SSE4_1__)
+  60:HvUtils.h     ****   #define HV_SIMD_AVX (__AVX__ && HV_SIMD_SSE)
+  61:HvUtils.h     **** #endif
+  62:HvUtils.h     **** #ifndef HV_SIMD_FMA
+  63:HvUtils.h     ****   #define HV_SIMD_FMA __FMA__
+  64:HvUtils.h     **** #endif
+  65:HvUtils.h     **** 
+  66:HvUtils.h     **** #if HV_SIMD_AVX || HV_SIMD_SSE
+  67:HvUtils.h     ****   #include <immintrin.h>
+  68:HvUtils.h     **** #elif HV_SIMD_NEON
+  69:HvUtils.h     ****   #include <arm_neon.h>
+  70:HvUtils.h     **** #endif
+  71:HvUtils.h     **** 
+  72:HvUtils.h     **** #if HV_SIMD_NEON // NEON
+  73:HvUtils.h     ****   #define HV_N_SIMD 4
+  74:HvUtils.h     ****   #define hv_bufferf_t float32x4_t
+  75:HvUtils.h     ****   #define hv_bufferi_t int32x4_t
+  76:HvUtils.h     ****   #define hv_bInf_t float32x4_t
+  77:HvUtils.h     ****   #define hv_bOutf_t float32x4_t*
+  78:HvUtils.h     ****   #define hv_bIni_t int32x4_t
+  79:HvUtils.h     ****   #define hv_bOuti_t int32x4_t*
+  80:HvUtils.h     ****   #define VIf(_x) (_x)
+  81:HvUtils.h     ****   #define VOf(_x) (&_x)
+  82:HvUtils.h     ****   #define VIi(_x) (_x)
+  83:HvUtils.h     ****   #define VOi(_x) (&_x)
+  84:HvUtils.h     **** #elif HV_SIMD_AVX // AVX
+  85:HvUtils.h     ****   #define HV_N_SIMD 8
+  86:HvUtils.h     ****   #define hv_bufferf_t __m256
+  87:HvUtils.h     ****   #define hv_bufferi_t __m256i
+  88:HvUtils.h     ****   #define hv_bInf_t __m256
+  89:HvUtils.h     ****   #define hv_bOutf_t __m256*
+  90:HvUtils.h     ****   #define hv_bIni_t __m256i
+  91:HvUtils.h     ****   #define hv_bOuti_t __m256i*
+  92:HvUtils.h     ****   #define VIf(_x) (_x)
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 14
+
+
+  93:HvUtils.h     ****   #define VOf(_x) (&_x)
+  94:HvUtils.h     ****   #define VIi(_x) (_x)
+  95:HvUtils.h     ****   #define VOi(_x) (&_x)
+  96:HvUtils.h     **** #elif HV_SIMD_SSE // SSE
+  97:HvUtils.h     ****   #define HV_N_SIMD 4
+  98:HvUtils.h     ****   #define hv_bufferf_t __m128
+  99:HvUtils.h     ****   #define hv_bufferi_t __m128i
+ 100:HvUtils.h     ****   #define hv_bInf_t __m128
+ 101:HvUtils.h     ****   #define hv_bOutf_t __m128*
+ 102:HvUtils.h     ****   #define hv_bIni_t __m128i
+ 103:HvUtils.h     ****   #define hv_bOuti_t __m128i*
+ 104:HvUtils.h     ****   #define VIf(_x) (_x)
+ 105:HvUtils.h     ****   #define VOf(_x) (&_x)
+ 106:HvUtils.h     ****   #define VIi(_x) (_x)
+ 107:HvUtils.h     ****   #define VOi(_x) (&_x)
+ 108:HvUtils.h     **** #else // DEFAULT
+ 109:HvUtils.h     ****   #define HV_N_SIMD 1
+ 110:HvUtils.h     ****   #undef HV_SIMD_NONE
+ 111:HvUtils.h     ****   #define HV_SIMD_NONE 1
+ 112:HvUtils.h     ****   #define hv_bufferf_t float
+ 113:HvUtils.h     ****   #define hv_bufferi_t int
+ 114:HvUtils.h     ****   #define hv_bInf_t float
+ 115:HvUtils.h     ****   #define hv_bOutf_t float*
+ 116:HvUtils.h     ****   #define hv_bIni_t int
+ 117:HvUtils.h     ****   #define hv_bOuti_t int*
+ 118:HvUtils.h     ****   #define VIf(_x) (_x)
+ 119:HvUtils.h     ****   #define VOf(_x) (&_x)
+ 120:HvUtils.h     ****   #define VIi(_x) (_x)
+ 121:HvUtils.h     ****   #define VOi(_x) (&_x)
+ 122:HvUtils.h     **** #endif
+ 123:HvUtils.h     **** 
+ 124:HvUtils.h     **** #define HV_N_SIMD_MASK (HV_N_SIMD-1)
+ 125:HvUtils.h     **** 
+ 126:HvUtils.h     **** // Strings
+ 127:HvUtils.h     **** #include <string.h>
+ 128:HvUtils.h     **** #define hv_strlen(a) strlen(a)
+ 129:HvUtils.h     **** #define hv_strcmp(a, b) strcmp(a, b)
+ 130:HvUtils.h     **** #define hv_snprintf(a, b, c, ...) snprintf(a, b, c, __VA_ARGS__)
+ 131:HvUtils.h     **** #if HV_WIN
+ 132:HvUtils.h     **** #define hv_strncpy(_dst, _src, _len) strncpy_s(_dst, _len, _src, _TRUNCATE)
+ 133:HvUtils.h     **** #else
+ 134:HvUtils.h     **** #define hv_strncpy(_dst, _src, _len) strncpy(_dst, _src, _len)
+ 135:HvUtils.h     **** #endif
+ 136:HvUtils.h     **** 
+ 137:HvUtils.h     **** // Memory management
+ 138:HvUtils.h     **** #define hv_memcpy(a, b, c) memcpy(a, b, c)
+ 139:HvUtils.h     **** #define hv_memclear(a, b) memset(a, 0, b)
+ 140:HvUtils.h     **** #if HV_WIN
+ 141:HvUtils.h     ****   #include <malloc.h>
+ 142:HvUtils.h     ****   #define hv_alloca(_n) _alloca(_n)
+ 143:HvUtils.h     ****   #if HV_SIMD_AVX
+ 144:HvUtils.h     ****     #define hv_malloc(_n) _aligned_malloc(_n, 32)
+ 145:HvUtils.h     ****     #define hv_realloc(a, b) _aligned_realloc(a, b, 32)
+ 146:HvUtils.h     ****     #define hv_free(x) _aligned_free(x)
+ 147:HvUtils.h     ****   #elif HV_SIMD_SSE || HV_SIMD_NEON
+ 148:HvUtils.h     ****     #define hv_malloc(_n) _aligned_malloc(_n, 16)
+ 149:HvUtils.h     ****     #define hv_realloc(a, b) _aligned_realloc(a, b, 16)
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 15
+
+
+ 150:HvUtils.h     ****     #define hv_free(x) _aligned_free(x)
+ 151:HvUtils.h     ****   #else // HV_SIMD_NONE
+ 152:HvUtils.h     ****     #define hv_malloc(_n) malloc(_n)
+ 153:HvUtils.h     ****     #define hv_realloc(a, b) realloc(a, b)
+ 154:HvUtils.h     ****     #define hv_free(_n) free(_n)
+ 155:HvUtils.h     ****   #endif
+ 156:HvUtils.h     **** #elif HV_APPLE
+ 157:HvUtils.h     ****   #define hv_alloca(_n) alloca(_n)
+ 158:HvUtils.h     ****   #define hv_realloc(a, b) realloc(a, b)
+ 159:HvUtils.h     ****   #if HV_SIMD_AVX
+ 160:HvUtils.h     ****     #include <mm_malloc.h>
+ 161:HvUtils.h     ****     #define hv_malloc(_n) _mm_malloc(_n, 32)
+ 162:HvUtils.h     ****     #define hv_free(x) _mm_free(x)
+ 163:HvUtils.h     ****   #elif HV_SIMD_SSE
+ 164:HvUtils.h     ****     #include <mm_malloc.h>
+ 165:HvUtils.h     ****     #define hv_malloc(_n) _mm_malloc(_n, 16)
+ 166:HvUtils.h     ****     #define hv_free(x) _mm_free(x)
+ 167:HvUtils.h     ****   #elif HV_SIMD_NEON
+ 168:HvUtils.h     ****     // malloc on ios always has 16-byte alignment
+ 169:HvUtils.h     ****     #define hv_malloc(_n) malloc(_n)
+ 170:HvUtils.h     ****     #define hv_free(x) free(x)
+ 171:HvUtils.h     ****   #else // HV_SIMD_NONE
+ 172:HvUtils.h     ****     #define hv_malloc(_n) malloc(_n)
+ 173:HvUtils.h     ****     #define hv_free(x) free(x)
+ 174:HvUtils.h     ****   #endif
+ 175:HvUtils.h     **** #else
+ 176:HvUtils.h     ****   #include <alloca.h>
+ 177:HvUtils.h     ****   #define hv_alloca(_n) alloca(_n)
+ 178:HvUtils.h     ****   #define hv_realloc(a, b) realloc(a, b)
+ 179:HvUtils.h     ****   #if HV_SIMD_AVX
+ 180:HvUtils.h     ****     #define hv_malloc(_n) aligned_alloc(32, _n)
+ 181:HvUtils.h     ****     #define hv_free(x) free(x)
+ 182:HvUtils.h     ****   #elif HV_SIMD_SSE
+ 183:HvUtils.h     ****     #define hv_malloc(_n) aligned_alloc(16, _n)
+ 184:HvUtils.h     ****     #define hv_free(x) free(x)
+ 185:HvUtils.h     ****   #elif HV_SIMD_NEON
+ 186:HvUtils.h     ****     #if HV_ANDROID
+ 187:HvUtils.h     ****       #define hv_malloc(_n) memalign(16, _n)
+ 188:HvUtils.h     ****       #define hv_free(x) free(x)
+ 189:HvUtils.h     ****     #else
+ 190:HvUtils.h     ****       #define hv_malloc(_n) aligned_alloc(16, _n)
+ 191:HvUtils.h     ****       #define hv_free(x) free(x)
+ 192:HvUtils.h     ****     #endif
+ 193:HvUtils.h     ****   #else // HV_SIMD_NONE
+ 194:HvUtils.h     ****     #define hv_malloc(_n) malloc(_n)
+ 195:HvUtils.h     ****     #define hv_free(_n) free(_n)
+ 196:HvUtils.h     ****   #endif
+ 197:HvUtils.h     **** #endif
+ 198:HvUtils.h     **** 
+ 199:HvUtils.h     **** // Assert
+ 200:HvUtils.h     **** #include <assert.h>
+ 201:HvUtils.h     **** #define hv_assert(e) assert(e)
+ 202:HvUtils.h     **** 
+ 203:HvUtils.h     **** // Export and Inline
+ 204:HvUtils.h     **** #if HV_WIN
+ 205:HvUtils.h     **** #define HV_EXPORT __declspec(dllexport)
+ 206:HvUtils.h     **** #ifndef __cplusplus // MSVC doesn't like redefining "inline" keyword
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 16
+
+
+ 207:HvUtils.h     **** #define inline __inline
+ 208:HvUtils.h     **** #endif
+ 209:HvUtils.h     **** #define HV_FORCE_INLINE __forceinline
+ 210:HvUtils.h     **** #else
+ 211:HvUtils.h     **** #define HV_EXPORT
+ 212:HvUtils.h     **** #define HV_FORCE_INLINE inline __attribute__((always_inline))
+ 213:HvUtils.h     **** #endif
+ 214:HvUtils.h     **** 
+ 215:HvUtils.h     **** #ifdef __cplusplus
+ 216:HvUtils.h     **** extern "C" {
+ 217:HvUtils.h     **** #endif
+ 218:HvUtils.h     ****   // Returns a 32-bit hash of any string. Returns 0 if string is NULL.
+ 219:HvUtils.h     ****   hv_uint32_t hv_string_to_hash(const char *str);
+ 220:HvUtils.h     **** #ifdef __cplusplus
+ 221:HvUtils.h     **** }
+ 222:HvUtils.h     **** #endif
+ 223:HvUtils.h     **** 
+ 224:HvUtils.h     **** // Math
+ 225:HvUtils.h     **** #include <math.h>
+ 226:HvUtils.h     **** static inline hv_size_t __hv_utils_max_ui(hv_size_t x, hv_size_t y) { return (x > y) ? x : y; }
+ 227:HvUtils.h     **** static inline hv_size_t __hv_utils_min_ui(hv_size_t x, hv_size_t y) { return (x < y) ? x : y; }
+ 228:HvUtils.h     **** static inline hv_int32_t __hv_utils_max_i(hv_int32_t x, hv_int32_t y) { return (x > y) ? x : y; }
+ 229:HvUtils.h     **** static inline hv_int32_t __hv_utils_min_i(hv_int32_t x, hv_int32_t y) { return (x < y) ? x : y; }
+ 230:HvUtils.h     **** #define hv_max_ui(a, b) __hv_utils_max_ui(a, b)
+ 231:HvUtils.h     **** #define hv_min_ui(a, b) __hv_utils_min_ui(a, b)
+ 232:HvUtils.h     **** #define hv_max_i(a, b) __hv_utils_max_i(a, b)
+ 233:HvUtils.h     **** #define hv_min_i(a, b) __hv_utils_min_i(a, b)
+ 234:HvUtils.h     **** #define hv_max_f(a, b) fmaxf(a, b)
+ 235:HvUtils.h     **** #define hv_min_f(a, b) fminf(a, b)
+ 236:HvUtils.h     **** #define hv_max_d(a, b) fmax(a, b)
+ 237:HvUtils.h     **** #define hv_min_d(a, b) fmin(a, b)
+ 238:HvUtils.h     **** #define hv_sin_f(a) sinf(a)
+ 239:HvUtils.h     **** #define hv_sinh_f(a) sinhf(a)
+ 240:HvUtils.h     **** #define hv_cos_f(a) cosf(a)
+ 241:HvUtils.h     **** #define hv_cosh_f(a) coshf(a)
+ 242:HvUtils.h     **** #define hv_tan_f(a) tanf(a)
+ 243:HvUtils.h     **** #define hv_tanh_f(a) tanhf(a)
+ 244:HvUtils.h     **** #define hv_asin_f(a) asinf(a)
+ 245:HvUtils.h     **** #define hv_asinh_f(a) asinhf(a)
+ 246:HvUtils.h     **** #define hv_acos_f(a) acosf(a)
+ 247:HvUtils.h     **** #define hv_acosh_f(a) acoshf(a)
+ 248:HvUtils.h     **** #define hv_atan_f(a) atanf(a)
+ 249:HvUtils.h     **** #define hv_atanh_f(a) atanhf(a)
+ 250:HvUtils.h     **** #define hv_atan2_f(a, b) atan2f(a, b)
+ 251:HvUtils.h     **** #define hv_exp_f(a) expf(a)
+ 252:HvUtils.h     **** #define hv_abs_f(a) fabsf(a)
+ 253:HvUtils.h     **** #define hv_sqrt_f(a) sqrtf(a)
+ 254:HvUtils.h     **** #define hv_log_f(a) logf(a)
+ 255:HvUtils.h     **** #define hv_ceil_f(a) ceilf(a)
+ 256:HvUtils.h     **** #define hv_floor_f(a) floorf(a)
+ 257:HvUtils.h     **** #define hv_round_f(a) roundf(a)
+ 258:HvUtils.h     **** #define hv_pow_f(a, b) powf(a, b)
+ 259:HvUtils.h     **** #if HV_EMSCRIPTEN
+ 260:HvUtils.h     **** #define hv_fma_f(a, b, c) ((a*b)+c) // emscripten does not support fmaf (yet?)
+ 261:HvUtils.h     **** #else
+ 262:HvUtils.h     **** #define hv_fma_f(a, b, c) fmaf(a, b, c)
+ 263:HvUtils.h     **** #endif
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 17
+
+
+ 264:HvUtils.h     **** #if HV_WIN
+ 265:HvUtils.h     ****   // finds ceil(log2(x))
+ 266:HvUtils.h     ****   #include <intrin.h>
+ 267:HvUtils.h     ****   static inline hv_uint32_t __hv_utils_min_max_log2(hv_uint32_t x) {
+ 268:HvUtils.h     ****     unsigned long z = 0;
+ 269:HvUtils.h     ****     _BitScanReverse(&z, x);
+ 270:HvUtils.h     ****     return (hv_uint32_t) (z+1);
+ 271:HvUtils.h     ****   }
+ 272:HvUtils.h     **** #else
+ 273:HvUtils.h     ****   static inline hv_uint32_t __hv_utils_min_max_log2(hv_uint32_t x) {
+ 370              		.loc 3 273 29 view .LVU101
+ 371              	.LBB79:
+ 274:HvUtils.h     ****     return (hv_uint32_t) (32 - __builtin_clz(x-1));
+ 372              		.loc 3 274 5 view .LVU102
+ 373              	.LBE79:
+ 374              	.LBE78:
+ 375              	.LBE77:
+ 376              	.LBE76:
+ 377              	.LBB87:
+ 378              	.LBB75:
+ 379              		.loc 2 96 11 is_stmt 0 view .LVU103
+ 380 0008 EB88     		ldrh	r3, [r5, #6]
+ 381              	.LBE75:
+ 382              	.LBE87:
+ 383              	.LBB88:
+ 384              	.LBB86:
+ 385              	.LBB81:
+ 386              	.LBB80:
+ 387              		.loc 3 274 47 view .LVU104
+ 388 000a 013B     		subs	r3, r3, #1
+ 389              		.loc 3 274 32 view .LVU105
+ 390 000c B3FA83F3 		clz	r3, r3
+ 391              	.LVL18:
+ 392              		.loc 3 274 32 view .LVU106
+ 393              	.LBE80:
+ 394              	.LBE81:
+ 395              	.LBB82:
+ 396              	.LBI82:
+ 228:HvUtils.h     **** static inline hv_int32_t __hv_utils_min_i(hv_int32_t x, hv_int32_t y) { return (x < y) ? x : y; }
+ 397              		.loc 3 228 26 is_stmt 1 view .LVU107
+ 398              	.LBB83:
+ 228:HvUtils.h     **** static inline hv_int32_t __hv_utils_min_i(hv_int32_t x, hv_int32_t y) { return (x < y) ? x : y; }
+ 399              		.loc 3 228 73 view .LVU108
+ 228:HvUtils.h     **** static inline hv_int32_t __hv_utils_min_i(hv_int32_t x, hv_int32_t y) { return (x < y) ? x : y; }
+ 400              		.loc 3 228 73 is_stmt 0 view .LVU109
+ 401              	.LBE83:
+ 402              	.LBE82:
+  81:HvMessagePool.c **** }
+ 403              		.loc 1 81 22 view .LVU110
+ 404 0010 C3F11B03 		rsb	r3, r3, #27
+ 405              	.LBB85:
+ 406              	.LBB84:
+ 228:HvUtils.h     **** static inline hv_int32_t __hv_utils_min_i(hv_int32_t x, hv_int32_t y) { return (x < y) ? x : y; }
+ 407              		.loc 3 228 92 view .LVU111
+ 408 0014 23EAE373 		bic	r3, r3, r3, asr #31
+ 409              	.LVL19:
+ 228:HvUtils.h     **** static inline hv_int32_t __hv_utils_min_i(hv_int32_t x, hv_int32_t y) { return (x < y) ? x : y; }
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 18
+
+
+ 410              		.loc 3 228 92 view .LVU112
+ 411              	.LBE84:
+ 412              	.LBE85:
+ 413              	.LBE86:
+ 414              	.LBE88:
+ 109:HvMessagePool.c ****   const hv_size_t chunkSize = 32 << i;
+ 415              		.loc 1 109 3 is_stmt 1 view .LVU113
+ 110:HvMessagePool.c ****   hv_memclear(m, chunkSize); // clear the chunk, just in case
+ 416              		.loc 1 110 3 view .LVU114
+ 417              		.loc 1 111 3 view .LVU115
+ 418 0018 00EBC304 		add	r4, r0, r3, lsl #3
+ 419 001c 9A40     		lsls	r2, r2, r3
+ 420              	.LVL20:
+ 421              		.loc 1 111 3 is_stmt 0 view .LVU116
+ 422 001e 2846     		mov	r0, r5
+ 423              	.LVL21:
+ 424              		.loc 1 111 3 view .LVU117
+ 425 0020 FFF7FEFF 		bl	memset
+ 426              	.LVL22:
+ 112:HvMessagePool.c ****   ml_push(ml, m);
+ 427              		.loc 1 112 3 is_stmt 1 view .LVU118
+ 428              	.LBB89:
+ 429              	.LBI89:
+  47:HvMessagePool.c ****   MessageListNode *n = NULL;
+ 430              		.loc 1 47 13 view .LVU119
+ 431              	.LBB90:
+  48:HvMessagePool.c ****   if (ml->pool != NULL) {
+ 432              		.loc 1 48 3 view .LVU120
+  49:HvMessagePool.c ****     // take an empty MessageListNode from the pool
+ 433              		.loc 1 49 3 view .LVU121
+  49:HvMessagePool.c ****     // take an empty MessageListNode from the pool
+ 434              		.loc 1 49 9 is_stmt 0 view .LVU122
+ 435 0024 2069     		ldr	r0, [r4, #16]
+  49:HvMessagePool.c ****     // take an empty MessageListNode from the pool
+ 436              		.loc 1 49 6 view .LVU123
+ 437 0026 30B1     		cbz	r0, .L35
+  51:HvMessagePool.c ****     ml->pool = n->next;
+ 438              		.loc 1 51 5 is_stmt 1 view .LVU124
+ 439              	.LVL23:
+  52:HvMessagePool.c ****   } else {
+ 440              		.loc 1 52 5 view .LVU125
+  52:HvMessagePool.c ****   } else {
+ 441              		.loc 1 52 14 is_stmt 0 view .LVU126
+ 442 0028 4268     		ldr	r2, [r0, #4]
+ 443 002a 2261     		str	r2, [r4, #16]
+ 444              	.L36:
+  58:HvMessagePool.c ****   n->next = ml->head;
+ 445              		.loc 1 58 3 is_stmt 1 view .LVU127
+  59:HvMessagePool.c ****   ml->head = n; // push to the front of the queue
+ 446              		.loc 1 59 11 is_stmt 0 view .LVU128
+ 447 002c E268     		ldr	r2, [r4, #12]
+ 448 002e C0E90052 		strd	r5, r2, [r0]
+  60:HvMessagePool.c **** }
+ 449              		.loc 1 60 3 is_stmt 1 view .LVU129
+  60:HvMessagePool.c **** }
+ 450              		.loc 1 60 12 is_stmt 0 view .LVU130
+ 451 0032 E060     		str	r0, [r4, #12]
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 19
+
+
+ 452              	.LVL24:
+  60:HvMessagePool.c **** }
+ 453              		.loc 1 60 12 view .LVU131
+ 454              	.LBE90:
+ 455              	.LBE89:
+ 113:HvMessagePool.c **** }
+ 456              		.loc 1 113 1 view .LVU132
+ 457 0034 38BD     		pop	{r3, r4, r5, pc}
+ 458              	.LVL25:
+ 459              	.L35:
+ 460              	.LBB92:
+ 461              	.LBB91:
+  55:HvMessagePool.c ****     hv_assert(n != NULL);
+ 462              		.loc 1 55 5 is_stmt 1 view .LVU133
+  55:HvMessagePool.c ****     hv_assert(n != NULL);
+ 463              		.loc 1 55 29 is_stmt 0 view .LVU134
+ 464 0036 0820     		movs	r0, #8
+ 465 0038 FFF7FEFF 		bl	malloc
+ 466              	.LVL26:
+  56:HvMessagePool.c ****   }
+ 467              		.loc 1 56 5 is_stmt 1 view .LVU135
+ 468 003c 0028     		cmp	r0, #0
+ 469 003e F5D1     		bne	.L36
+ 470 0040 FFF7FEFF 		bl	ml_push.part.0
+ 471              	.LVL27:
+  56:HvMessagePool.c ****   }
+ 472              		.loc 1 56 5 is_stmt 0 view .LVU136
+ 473              	.LBE91:
+ 474              	.LBE92:
+ 475              		.cfi_endproc
+ 476              	.LFE369:
+ 478              		.section	.rodata.mp_addMessage.str1.4,"aMS",%progbits,1
+ 479              		.align	2
+ 480              	.LC3:
+ 481 0000 69203C20 		.ascii	"i < 4\000"
+ 481      3400
+ 482 0006 0000     		.align	2
+ 483              	.LC4:
+ 484 0008 286E6577 		.ascii	"(newIndex <= mp->bufferSize) && \"The message pool "
+ 484      496E6465 
+ 484      78203C3D 
+ 484      206D702D 
+ 484      3E627566 
+ 485 003a 62756666 		.ascii	"buffer size has been exceeded. The context cannot s"
+ 485      65722073 
+ 485      697A6520 
+ 485      68617320 
+ 485      6265656E 
+ 486 006d 746F7265 		.ascii	"tore more messages. \" \"Try using the new_with_opt"
+ 486      206D6F72 
+ 486      65206D65 
+ 486      73736167 
+ 486      65732E20 
+ 487 009e 696F6E73 		.ascii	"ions() initialiser with a larger pool size (default"
+ 487      28292069 
+ 487      6E697469 
+ 487      616C6973 
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 20
+
+
+ 487      65722077 
+ 488 00d1 20697320 		.ascii	" is 10KB).\"\000"
+ 488      31304B42 
+ 488      292E2200 
+ 489              		.section	.text.mp_addMessage,"ax",%progbits
+ 490              		.align	1
+ 491              		.p2align 2,,3
+ 492              		.global	mp_addMessage
+ 493              		.syntax unified
+ 494              		.thumb
+ 495              		.thumb_func
+ 496              		.fpu fpv5-d16
+ 498              	mp_addMessage:
+ 499              	.LVL28:
+ 500              	.LFB370:
+ 114:HvMessagePool.c **** 
+ 115:HvMessagePool.c **** HvMessage *mp_addMessage(HvMessagePool *mp, const HvMessage *m) {
+ 501              		.loc 1 115 65 is_stmt 1 view -0
+ 502              		.cfi_startproc
+ 503              		@ args = 0, pretend = 0, frame = 8
+ 504              		@ frame_needed = 0, uses_anonymous_args = 0
+ 116:HvMessagePool.c ****   const hv_size_t b = msg_getSize(m);
+ 505              		.loc 1 116 3 view .LVU138
+ 506              	.LBB112:
+ 507              	.LBI112:
+  95:HvMessage.h   ****   return m->numBytes;
+ 508              		.loc 2 95 27 view .LVU139
+ 509              	.LBB113:
+ 510              		.loc 2 96 3 view .LVU140
+ 511              		.loc 2 96 3 is_stmt 0 view .LVU141
+ 512              	.LBE113:
+ 513              	.LBE112:
+ 117:HvMessagePool.c ****   // determine the message list index to allocate data from based on the msg size
+ 118:HvMessagePool.c ****   // smallest chunk size is 32 bytes
+ 119:HvMessagePool.c ****   const hv_size_t i = mp_messagelistIndexForSize(b);
+ 514              		.loc 1 119 3 is_stmt 1 view .LVU142
+ 515              	.LBB115:
+ 516              	.LBI115:
+  80:HvMessagePool.c ****   return (hv_size_t) hv_max_i((hv_min_max_log2((hv_uint32_t) byteSize) - 5), 0);
+ 517              		.loc 1 80 18 view .LVU143
+ 518              	.LBB116:
+  81:HvMessagePool.c **** }
+ 519              		.loc 1 81 3 view .LVU144
+ 520              	.LBB117:
+ 521              	.LBI117:
+ 273:HvUtils.h     ****     return (hv_uint32_t) (32 - __builtin_clz(x-1));
+ 522              		.loc 3 273 29 view .LVU145
+ 523              	.LBB118:
+ 524              		.loc 3 274 5 view .LVU146
+ 525              	.LBE118:
+ 526              	.LBE117:
+ 527              	.LBE116:
+ 528              	.LBE115:
+ 529              	.LBB124:
+ 530              	.LBB114:
+ 531              		.loc 2 96 11 is_stmt 0 view .LVU147
+ 532 0000 CB88     		ldrh	r3, [r1, #6]
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 21
+
+
+ 533              	.LBE114:
+ 534              	.LBE124:
+ 535              	.LBB125:
+ 536              	.LBB123:
+ 537              	.LBB120:
+ 538              	.LBB119:
+ 539              		.loc 3 274 47 view .LVU148
+ 540 0002 013B     		subs	r3, r3, #1
+ 541              		.loc 3 274 32 view .LVU149
+ 542 0004 B3FA83F3 		clz	r3, r3
+ 543              	.LVL29:
+ 544              		.loc 3 274 32 view .LVU150
+ 545              	.LBE119:
+ 546              	.LBE120:
+  81:HvMessagePool.c **** }
+ 547              		.loc 1 81 22 view .LVU151
+ 548 0008 C3F11B03 		rsb	r3, r3, #27
+ 549              	.LVL30:
+ 550              	.LBB121:
+ 551              	.LBI121:
+ 228:HvUtils.h     **** static inline hv_int32_t __hv_utils_min_i(hv_int32_t x, hv_int32_t y) { return (x < y) ? x : y; }
+ 552              		.loc 3 228 26 is_stmt 1 view .LVU152
+ 553              	.LBB122:
+ 228:HvUtils.h     **** static inline hv_int32_t __hv_utils_min_i(hv_int32_t x, hv_int32_t y) { return (x < y) ? x : y; }
+ 554              		.loc 3 228 73 view .LVU153
+ 228:HvUtils.h     **** static inline hv_int32_t __hv_utils_min_i(hv_int32_t x, hv_int32_t y) { return (x < y) ? x : y; }
+ 555              		.loc 3 228 73 is_stmt 0 view .LVU154
+ 556              	.LBE122:
+ 557              	.LBE121:
+ 558              	.LBE123:
+ 559              	.LBE125:
+ 120:HvMessagePool.c **** 
+ 121:HvMessagePool.c ****   hv_assert(i < MP_NUM_MESSAGE_LISTS); // how many chunk sizes do we want to support? 32, 64, 128, 
+ 560              		.loc 1 121 3 is_stmt 1 view .LVU155
+ 561 000c 032B     		cmp	r3, #3
+ 115:HvMessagePool.c ****   const hv_size_t b = msg_getSize(m);
+ 562              		.loc 1 115 65 is_stmt 0 view .LVU156
+ 563 000e 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 564              		.cfi_def_cfa_offset 36
+ 565              		.cfi_offset 4, -36
+ 566              		.cfi_offset 5, -32
+ 567              		.cfi_offset 6, -28
+ 568              		.cfi_offset 7, -24
+ 569              		.cfi_offset 8, -20
+ 570              		.cfi_offset 9, -16
+ 571              		.cfi_offset 10, -12
+ 572              		.cfi_offset 11, -8
+ 573              		.cfi_offset 14, -4
+ 574 0012 83B0     		sub	sp, sp, #12
+ 575              		.cfi_def_cfa_offset 48
+ 576              		.loc 1 121 3 view .LVU157
+ 577 0014 4BDC     		bgt	.L55
+ 122:HvMessagePool.c ****   HvMessagePoolList *ml = &mp->lists[i];
+ 578              		.loc 1 122 3 is_stmt 1 view .LVU158
+ 579              	.LVL31:
+ 123:HvMessagePool.c ****   const hv_size_t chunkSize = 32 << i;
+ 580              		.loc 1 123 3 view .LVU159
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 22
+
+
+ 581 0016 23EAE372 		bic	r2, r3, r3, asr #31
+ 582              	.LVL32:
+ 583              		.loc 1 123 34 is_stmt 0 view .LVU160
+ 584 001a 4FF02008 		mov	r8, #32
+ 585 001e 8946     		mov	r9, r1
+ 586 0020 8246     		mov	r10, r0
+ 587 0022 00EBC205 		add	r5, r0, r2, lsl #3
+ 588 0026 08FA02F8 		lsl	r8, r8, r2
+ 589              	.LVL33:
+ 124:HvMessagePool.c **** 
+ 125:HvMessagePool.c ****   if (ml_hasAvailable(ml)) {
+ 590              		.loc 1 125 3 is_stmt 1 view .LVU161
+ 591              	.LBB126:
+ 592              	.LBI126:
+  32:HvMessagePool.c ****   return (ml->head != NULL);
+ 593              		.loc 1 32 20 view .LVU162
+ 594              	.LBB127:
+  33:HvMessagePool.c **** }
+ 595              		.loc 1 33 3 view .LVU163
+  33:HvMessagePool.c **** }
+ 596              		.loc 1 33 13 is_stmt 0 view .LVU164
+ 597 002a EB68     		ldr	r3, [r5, #12]
+ 598 002c 1E46     		mov	r6, r3
+ 599              	.LVL34:
+  33:HvMessagePool.c **** }
+ 600              		.loc 1 33 13 view .LVU165
+ 601              	.LBE127:
+ 602              	.LBE126:
+ 603              		.loc 1 125 6 view .LVU166
+ 604 002e 002B     		cmp	r3, #0
+ 605 0030 33D1     		bne	.L56
+ 606              	.LBB128:
+ 126:HvMessagePool.c ****     char *buf = ml_pop(ml);
+ 127:HvMessagePool.c ****     msg_copyToBuffer(m, buf, chunkSize);
+ 128:HvMessagePool.c ****     return (HvMessage *) buf;
+ 129:HvMessagePool.c ****   } else {
+ 130:HvMessagePool.c ****     // if no appropriately sized buffer is immediately available, increase the size of the used buf
+ 131:HvMessagePool.c ****     const hv_size_t newIndex = mp->bufferIndex + MP_BLOCK_SIZE_BYTES;
+ 607              		.loc 1 131 5 is_stmt 1 view .LVU167
+ 132:HvMessagePool.c ****     hv_assert((newIndex <= mp->bufferSize) &&
+ 608              		.loc 1 132 5 is_stmt 0 view .LVU168
+ 609 0032 D0E90124 		ldrd	r2, r4, [r0, #4]
+ 610              	.LVL35:
+ 131:HvMessagePool.c ****     hv_assert((newIndex <= mp->bufferSize) &&
+ 611              		.loc 1 131 21 view .LVU169
+ 612 0036 04F5007B 		add	fp, r4, #512
+ 613              	.LVL36:
+ 614              		.loc 1 132 5 is_stmt 1 view .LVU170
+ 615 003a 5A45     		cmp	r2, fp
+ 616 003c 3DD3     		bcc	.L42
+ 617              	.LVL37:
+ 618              	.LBB129:
+ 133:HvMessagePool.c ****         "The message pool buffer size has been exceeded. The context cannot store more messages. "
+ 134:HvMessagePool.c ****         "Try using the new_with_options() initialiser with a larger pool size (default is 10KB).");
+ 135:HvMessagePool.c **** 
+ 136:HvMessagePool.c ****     for (hv_size_t j = mp->bufferIndex; j < newIndex; j += chunkSize) {
+ 619              		.loc 1 136 41 view .LVU171
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 23
+
+
+ 620              		.loc 1 136 5 is_stmt 0 view .LVU172
+ 621 003e 5C45     		cmp	r4, fp
+ 622 0040 18D2     		bcs	.L57
+ 137:HvMessagePool.c ****       ml_push(ml, mp->buffer + j); // push new nodes onto the list with chunk pointers
+ 623              		.loc 1 137 21 view .LVU173
+ 624 0042 0168     		ldr	r1, [r0]
+ 625              	.LVL38:
+ 626              		.loc 1 137 21 view .LVU174
+ 627 0044 09E0     		b	.L47
+ 628              	.LVL39:
+ 629              	.L58:
+ 630              	.LBB130:
+ 631              	.LBB131:
+  51:HvMessagePool.c ****     ml->pool = n->next;
+ 632              		.loc 1 51 5 is_stmt 1 view .LVU175
+  52:HvMessagePool.c ****   } else {
+ 633              		.loc 1 52 5 view .LVU176
+  52:HvMessagePool.c ****   } else {
+ 634              		.loc 1 52 14 is_stmt 0 view .LVU177
+ 635 0046 5A68     		ldr	r2, [r3, #4]
+ 636 0048 2A61     		str	r2, [r5, #16]
+ 637              	.L46:
+  58:HvMessagePool.c ****   n->next = ml->head;
+ 638              		.loc 1 58 3 is_stmt 1 view .LVU178
+ 639              	.LBE131:
+ 640              	.LBE130:
+ 136:HvMessagePool.c ****       ml_push(ml, mp->buffer + j); // push new nodes onto the list with chunk pointers
+ 641              		.loc 1 136 57 is_stmt 0 view .LVU179
+ 642 004a 4444     		add	r4, r4, r8
+ 643              	.LVL40:
+ 644              	.LBB137:
+ 645              	.LBB132:
+  59:HvMessagePool.c ****   ml->head = n; // push to the front of the queue
+ 646              		.loc 1 59 15 view .LVU180
+ 647 004c 3246     		mov	r2, r6
+ 648              	.LBE132:
+ 649              	.LBE137:
+ 136:HvMessagePool.c ****       ml_push(ml, mp->buffer + j); // push new nodes onto the list with chunk pointers
+ 650              		.loc 1 136 5 view .LVU181
+ 651 004e A345     		cmp	fp, r4
+ 652              	.LBB138:
+ 653              	.LBB133:
+  58:HvMessagePool.c ****   n->next = ml->head;
+ 654              		.loc 1 58 8 view .LVU182
+ 655 0050 C3E90076 		strd	r7, r6, [r3]
+  59:HvMessagePool.c ****   ml->head = n; // push to the front of the queue
+ 656              		.loc 1 59 3 is_stmt 1 view .LVU183
+  60:HvMessagePool.c **** }
+ 657              		.loc 1 60 3 view .LVU184
+  60:HvMessagePool.c **** }
+ 658              		.loc 1 60 12 is_stmt 0 view .LVU185
+ 659 0054 1E46     		mov	r6, r3
+ 660 0056 EB60     		str	r3, [r5, #12]
+ 661              	.LVL41:
+  60:HvMessagePool.c **** }
+ 662              		.loc 1 60 12 view .LVU186
+ 663              	.LBE133:
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 24
+
+
+ 664              	.LBE138:
+ 136:HvMessagePool.c ****       ml_push(ml, mp->buffer + j); // push new nodes onto the list with chunk pointers
+ 665              		.loc 1 136 55 is_stmt 1 view .LVU187
+ 136:HvMessagePool.c ****       ml_push(ml, mp->buffer + j); // push new nodes onto the list with chunk pointers
+ 666              		.loc 1 136 41 view .LVU188
+ 136:HvMessagePool.c ****       ml_push(ml, mp->buffer + j); // push new nodes onto the list with chunk pointers
+ 667              		.loc 1 136 5 is_stmt 0 view .LVU189
+ 668 0058 0ED9     		bls	.L48
+ 669              	.L47:
+ 670              		.loc 1 137 7 is_stmt 1 discriminator 3 view .LVU190
+ 671              	.LBB139:
+ 672              	.LBB134:
+  49:HvMessagePool.c ****     // take an empty MessageListNode from the pool
+ 673              		.loc 1 49 9 is_stmt 0 discriminator 3 view .LVU191
+ 674 005a 2B69     		ldr	r3, [r5, #16]
+ 675 005c 0F19     		adds	r7, r1, r4
+ 676              	.LVL42:
+  49:HvMessagePool.c ****     // take an empty MessageListNode from the pool
+ 677              		.loc 1 49 9 discriminator 3 view .LVU192
+ 678              	.LBE134:
+ 679              	.LBI130:
+  47:HvMessagePool.c ****   MessageListNode *n = NULL;
+ 680              		.loc 1 47 13 is_stmt 1 discriminator 3 view .LVU193
+ 681              	.LBB135:
+  48:HvMessagePool.c ****   if (ml->pool != NULL) {
+ 682              		.loc 1 48 3 discriminator 3 view .LVU194
+  49:HvMessagePool.c ****     // take an empty MessageListNode from the pool
+ 683              		.loc 1 49 3 discriminator 3 view .LVU195
+  49:HvMessagePool.c ****     // take an empty MessageListNode from the pool
+ 684              		.loc 1 49 6 is_stmt 0 discriminator 3 view .LVU196
+ 685 005e 002B     		cmp	r3, #0
+ 686 0060 F1D1     		bne	.L58
+  55:HvMessagePool.c ****     hv_assert(n != NULL);
+ 687              		.loc 1 55 5 is_stmt 1 view .LVU197
+  55:HvMessagePool.c ****     hv_assert(n != NULL);
+ 688              		.loc 1 55 29 is_stmt 0 view .LVU198
+ 689 0062 0820     		movs	r0, #8
+ 690 0064 0191     		str	r1, [sp, #4]
+ 691 0066 FFF7FEFF 		bl	malloc
+ 692              	.LVL43:
+  56:HvMessagePool.c ****   }
+ 693              		.loc 1 56 5 is_stmt 1 view .LVU199
+ 694 006a 0346     		mov	r3, r0
+ 695 006c E8B1     		cbz	r0, .L52
+ 696 006e EE68     		ldr	r6, [r5, #12]
+ 697 0070 0199     		ldr	r1, [sp, #4]
+ 698 0072 EAE7     		b	.L46
+ 699              	.LVL44:
+ 700              	.L57:
+  56:HvMessagePool.c ****   }
+ 701              		.loc 1 56 5 is_stmt 0 view .LVU200
+ 702              	.LBE135:
+ 703              	.LBE139:
+ 704              	.LBE129:
+ 705              	.LBB141:
+ 706              	.LBB142:
+  41:HvMessagePool.c ****   n->p = NULL; // set to NULL to make it clear that this node does not have a valid buffer
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 25
+
+
+ 707              		.loc 1 41 15 view .LVU201
+ 708 0074 D3E90072 		ldrd	r7, r2, [r3]
+ 709              	.LVL45:
+ 710              	.L48:
+  41:HvMessagePool.c ****   n->p = NULL; // set to NULL to make it clear that this node does not have a valid buffer
+ 711              		.loc 1 41 15 view .LVU202
+ 712              	.LBE142:
+ 713              	.LBE141:
+ 138:HvMessagePool.c ****     }
+ 139:HvMessagePool.c ****     mp->bufferIndex = newIndex;
+ 714              		.loc 1 139 5 is_stmt 1 view .LVU203
+ 715              		.loc 1 139 21 is_stmt 0 view .LVU204
+ 716 0078 CAF808B0 		str	fp, [r10, #8]
+ 140:HvMessagePool.c ****     char *buf = ml_pop(ml);
+ 717              		.loc 1 140 5 is_stmt 1 view .LVU205
+ 718              	.LVL46:
+ 719              	.LBB146:
+ 720              	.LBI141:
+  36:HvMessagePool.c ****   MessageListNode *n = ml->head;
+ 721              		.loc 1 36 14 view .LVU206
+ 722              	.LBB143:
+  37:HvMessagePool.c ****   ml->head = n->next;
+ 723              		.loc 1 37 3 view .LVU207
+  38:HvMessagePool.c ****   n->next = ml->pool;
+ 724              		.loc 1 38 3 view .LVU208
+ 725              	.LBE143:
+ 726              	.LBE146:
+ 141:HvMessagePool.c ****     msg_copyToBuffer(m, buf, chunkSize);
+ 727              		.loc 1 141 5 is_stmt 0 view .LVU209
+ 728 007c 4846     		mov	r0, r9
+ 729              	.LBB147:
+ 730              	.LBB144:
+  38:HvMessagePool.c ****   n->next = ml->pool;
+ 731              		.loc 1 38 12 view .LVU210
+ 732 007e EA60     		str	r2, [r5, #12]
+  39:HvMessagePool.c ****   ml->pool = n;
+ 733              		.loc 1 39 3 is_stmt 1 view .LVU211
+ 734              	.LBE144:
+ 735              	.LBE147:
+ 736              		.loc 1 141 5 is_stmt 0 view .LVU212
+ 737 0080 4246     		mov	r2, r8
+ 738              	.LBB148:
+ 739              	.LBB145:
+  39:HvMessagePool.c ****   ml->pool = n;
+ 740              		.loc 1 39 11 view .LVU213
+ 741 0082 2969     		ldr	r1, [r5, #16]
+ 742 0084 5960     		str	r1, [r3, #4]
+ 743              	.LVL47:
+ 744              	.L54:
+  40:HvMessagePool.c ****   char *const p = n->p;
+ 745              		.loc 1 40 3 is_stmt 1 view .LVU214
+  42:HvMessagePool.c ****   return p;
+ 746              		.loc 1 42 8 is_stmt 0 view .LVU215
+ 747 0086 0021     		movs	r1, #0
+  40:HvMessagePool.c ****   char *const p = n->p;
+ 748              		.loc 1 40 12 view .LVU216
+ 749 0088 2B61     		str	r3, [r5, #16]
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 26
+
+
+  41:HvMessagePool.c ****   n->p = NULL; // set to NULL to make it clear that this node does not have a valid buffer
+ 750              		.loc 1 41 3 is_stmt 1 view .LVU217
+ 751              	.LVL48:
+  42:HvMessagePool.c ****   return p;
+ 752              		.loc 1 42 3 view .LVU218
+  42:HvMessagePool.c ****   return p;
+ 753              		.loc 1 42 8 is_stmt 0 view .LVU219
+ 754 008a 1960     		str	r1, [r3]
+  43:HvMessagePool.c **** }
+ 755              		.loc 1 43 3 is_stmt 1 view .LVU220
+ 756              	.LVL49:
+  43:HvMessagePool.c **** }
+ 757              		.loc 1 43 3 is_stmt 0 view .LVU221
+ 758              	.LBE145:
+ 759              	.LBE148:
+ 760              		.loc 1 141 5 is_stmt 1 view .LVU222
+ 761 008c 3946     		mov	r1, r7
+ 762 008e FFF7FEFF 		bl	msg_copyToBuffer
+ 763              	.LVL50:
+ 142:HvMessagePool.c ****     return (HvMessage *) buf;
+ 764              		.loc 1 142 5 view .LVU223
+ 765              	.LBE128:
+ 143:HvMessagePool.c ****   }
+ 144:HvMessagePool.c **** }
+ 766              		.loc 1 144 1 is_stmt 0 view .LVU224
+ 767 0092 3846     		mov	r0, r7
+ 768 0094 03B0     		add	sp, sp, #12
+ 769              		.cfi_remember_state
+ 770              		.cfi_def_cfa_offset 36
+ 771              		@ sp needed
+ 772 0096 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 773              	.LVL51:
+ 774              	.L56:
+ 775              		.cfi_restore_state
+ 776              	.LBB150:
+ 126:HvMessagePool.c ****     msg_copyToBuffer(m, buf, chunkSize);
+ 777              		.loc 1 126 5 is_stmt 1 view .LVU225
+ 778              	.LBB151:
+ 779              	.LBI151:
+  36:HvMessagePool.c ****   MessageListNode *n = ml->head;
+ 780              		.loc 1 36 14 view .LVU226
+ 781              	.LBB152:
+  37:HvMessagePool.c ****   ml->head = n->next;
+ 782              		.loc 1 37 3 view .LVU227
+  38:HvMessagePool.c ****   n->next = ml->pool;
+ 783              		.loc 1 38 3 view .LVU228
+  38:HvMessagePool.c ****   n->next = ml->pool;
+ 784              		.loc 1 38 12 is_stmt 0 view .LVU229
+ 785 009a 5968     		ldr	r1, [r3, #4]
+ 786              	.LVL52:
+  38:HvMessagePool.c ****   n->next = ml->pool;
+ 787              		.loc 1 38 12 view .LVU230
+ 788              	.LBE152:
+ 789              	.LBE151:
+ 127:HvMessagePool.c ****     return (HvMessage *) buf;
+ 790              		.loc 1 127 5 view .LVU231
+ 791 009c 4246     		mov	r2, r8
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 27
+
+
+ 792              	.LVL53:
+ 127:HvMessagePool.c ****     return (HvMessage *) buf;
+ 793              		.loc 1 127 5 view .LVU232
+ 794 009e 4846     		mov	r0, r9
+ 795              	.LVL54:
+ 796              	.LBB154:
+ 797              	.LBB153:
+  41:HvMessagePool.c ****   n->p = NULL; // set to NULL to make it clear that this node does not have a valid buffer
+ 798              		.loc 1 41 15 view .LVU233
+ 799 00a0 1F68     		ldr	r7, [r3]
+  38:HvMessagePool.c ****   n->next = ml->pool;
+ 800              		.loc 1 38 12 view .LVU234
+ 801 00a2 E960     		str	r1, [r5, #12]
+  39:HvMessagePool.c ****   ml->pool = n;
+ 802              		.loc 1 39 3 is_stmt 1 view .LVU235
+  39:HvMessagePool.c ****   ml->pool = n;
+ 803              		.loc 1 39 11 is_stmt 0 view .LVU236
+ 804 00a4 2969     		ldr	r1, [r5, #16]
+ 805 00a6 5960     		str	r1, [r3, #4]
+  40:HvMessagePool.c ****   char *const p = n->p;
+ 806              		.loc 1 40 3 is_stmt 1 view .LVU237
+ 807 00a8 EDE7     		b	.L54
+ 808              	.LVL55:
+ 809              	.L52:
+  40:HvMessagePool.c ****   char *const p = n->p;
+ 810              		.loc 1 40 3 is_stmt 0 view .LVU238
+ 811              	.LBE153:
+ 812              	.LBE154:
+ 813              	.LBE150:
+ 814              	.LBB155:
+ 815              	.LBB149:
+ 816              	.LBB140:
+ 817              	.LBB136:
+ 818 00aa FFF7FEFF 		bl	ml_push.part.0
+ 819              	.LVL56:
+ 820              	.L55:
+  40:HvMessagePool.c ****   char *const p = n->p;
+ 821              		.loc 1 40 3 view .LVU239
+ 822              	.LBE136:
+ 823              	.LBE140:
+ 824              	.LBE149:
+ 825              	.LBE155:
+ 121:HvMessagePool.c ****   HvMessagePoolList *ml = &mp->lists[i];
+ 826              		.loc 1 121 3 discriminator 1 view .LVU240
+ 827 00ae 064B     		ldr	r3, .L59
+ 828              	.LVL57:
+ 121:HvMessagePool.c ****   HvMessagePoolList *ml = &mp->lists[i];
+ 829              		.loc 1 121 3 discriminator 1 view .LVU241
+ 830 00b0 7921     		movs	r1, #121
+ 831              	.LVL58:
+ 121:HvMessagePool.c ****   HvMessagePoolList *ml = &mp->lists[i];
+ 832              		.loc 1 121 3 discriminator 1 view .LVU242
+ 833 00b2 064A     		ldr	r2, .L59+4
+ 834 00b4 0648     		ldr	r0, .L59+8
+ 835              	.LVL59:
+ 121:HvMessagePool.c ****   HvMessagePoolList *ml = &mp->lists[i];
+ 836              		.loc 1 121 3 discriminator 1 view .LVU243
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 28
+
+
+ 837 00b6 FFF7FEFF 		bl	__assert_func
+ 838              	.LVL60:
+ 839              	.L42:
+ 840              	.LBB156:
+ 132:HvMessagePool.c ****         "The message pool buffer size has been exceeded. The context cannot store more messages. "
+ 841              		.loc 1 132 5 discriminator 1 view .LVU244
+ 842 00ba 064B     		ldr	r3, .L59+12
+ 843 00bc 8421     		movs	r1, #132
+ 844              	.LVL61:
+ 132:HvMessagePool.c ****         "The message pool buffer size has been exceeded. The context cannot store more messages. "
+ 845              		.loc 1 132 5 discriminator 1 view .LVU245
+ 846 00be 034A     		ldr	r2, .L59+4
+ 847 00c0 0348     		ldr	r0, .L59+8
+ 848              	.LVL62:
+ 132:HvMessagePool.c ****         "The message pool buffer size has been exceeded. The context cannot store more messages. "
+ 849              		.loc 1 132 5 discriminator 1 view .LVU246
+ 850 00c2 FFF7FEFF 		bl	__assert_func
+ 851              	.LVL63:
+ 852              	.L60:
+ 132:HvMessagePool.c ****         "The message pool buffer size has been exceeded. The context cannot store more messages. "
+ 853              		.loc 1 132 5 discriminator 1 view .LVU247
+ 854 00c6 00BF     		.align	2
+ 855              	.L59:
+ 856 00c8 00000000 		.word	.LC3
+ 857 00cc 00000000 		.word	.LANCHOR2
+ 858 00d0 14000000 		.word	.LC1
+ 859 00d4 08000000 		.word	.LC4
+ 860              	.LBE156:
+ 861              		.cfi_endproc
+ 862              	.LFE370:
+ 864              		.section	.rodata.__func__.0,"a"
+ 865              		.align	2
+ 866              		.set	.LANCHOR2,. + 0
+ 869              	__func__.0:
+ 870 0000 6D705F61 		.ascii	"mp_addMessage\000"
+ 870      64644D65 
+ 870      73736167 
+ 870      6500
+ 871              		.section	.rodata.__func__.1,"a"
+ 872              		.align	2
+ 873              		.set	.LANCHOR0,. + 0
+ 876              	__func__.1:
+ 877 0000 6D6C5F70 		.ascii	"ml_push\000"
+ 877      75736800 
+ 878              		.section	.rodata.__func__.2,"a"
+ 879              		.align	2
+ 880              		.set	.LANCHOR1,. + 0
+ 883              	__func__.2:
+ 884 0000 6D705F69 		.ascii	"mp_init\000"
+ 884      6E697400 
+ 885              		.text
+ 886              	.Letext0:
+ 887              		.file 4 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 888              		.file 5 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 889              		.file 6 "c:\\program files\\daisytoolchain\\lib\\gcc\\arm-none-eabi\\10.2.1\\include\\stddef.h"
+ 890              		.file 7 "HvMessagePool.h"
+ 891              		.file 8 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\stdlib.h"
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 29
+
+
+ 892              		.file 9 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\assert.h"
+ 893              		.file 10 "<built-in>"
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s 			page 30
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 HvMessagePool.c
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:17     .rodata.ml_push.part.0.str1.4:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:24     .text.ml_push.part.0:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:32     .text.ml_push.part.0:00000000 ml_push.part.0
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:56     .text.ml_push.part.0:00000010 $d
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:63     .rodata.mp_init.str1.4:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:67     .text.mp_init:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:75     .text.mp_init:00000000 mp_init
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:146    .text.mp_init:00000038 $d
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:153    .text.mp_free:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:161    .text.mp_free:00000000 mp_free
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:322    .text.mp_freeMessage:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:330    .text.mp_freeMessage:00000000 mp_freeMessage
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:479    .rodata.mp_addMessage.str1.4:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:490    .text.mp_addMessage:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:498    .text.mp_addMessage:00000000 mp_addMessage
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:856    .text.mp_addMessage:000000c8 $d
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:865    .rodata.__func__.0:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:869    .rodata.__func__.0:00000000 __func__.0
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:872    .rodata.__func__.1:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:876    .rodata.__func__.1:00000000 __func__.1
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:879    .rodata.__func__.2:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccOClp3a.s:883    .rodata.__func__.2:00000000 __func__.2
+
+UNDEFINED SYMBOLS
+__assert_func
+malloc
+free
+memset
+msg_copyToBuffer

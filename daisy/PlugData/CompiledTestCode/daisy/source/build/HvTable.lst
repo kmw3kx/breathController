@@ -1,0 +1,1140 @@
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 28, 1
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 2
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"HvTable.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.rodata.hTable_init.str1.4,"aMS",%progbits,1
+  17              		.align	2
+  18              	.LC0:
+  19 0000 6F2D3E62 		.ascii	"o->buffer != ((void *)0)\000"
+  19      75666665 
+  19      7220213D 
+  19      20282876 
+  19      6F696420 
+  20 0019 000000   		.align	2
+  21              	.LC1:
+  22 001c 48765461 		.ascii	"HvTable.c\000"
+  22      626C652E 
+  22      6300
+  23              		.section	.text.hTable_init,"ax",%progbits
+  24              		.align	1
+  25              		.p2align 2,,3
+  26              		.global	hTable_init
+  27              		.arch armv7e-m
+  28              		.syntax unified
+  29              		.thumb
+  30              		.thumb_func
+  31              		.fpu fpv5-d16
+  33              	hTable_init:
+  34              	.LVL0:
+  35              	.LFB368:
+  36              		.file 1 "HvTable.c"
+   1:HvTable.c     **** /**
+   2:HvTable.c     ****  * Copyright (c) 2014-2018 Enzien Audio Ltd.
+   3:HvTable.c     ****  *
+   4:HvTable.c     ****  * Permission to use, copy, modify, and/or distribute this software for any
+   5:HvTable.c     ****  * purpose with or without fee is hereby granted, provided that the above
+   6:HvTable.c     ****  * copyright notice and this permission notice appear in all copies.
+   7:HvTable.c     ****  *
+   8:HvTable.c     ****  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+   9:HvTable.c     ****  * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  10:HvTable.c     ****  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  11:HvTable.c     ****  * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  12:HvTable.c     ****  * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  13:HvTable.c     ****  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  14:HvTable.c     ****  * PERFORMANCE OF THIS SOFTWARE.
+  15:HvTable.c     ****  */
+  16:HvTable.c     **** 
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 2
+
+
+  17:HvTable.c     **** #include "HvTable.h"
+  18:HvTable.c     **** #include "HvMessage.h"
+  19:HvTable.c     **** 
+  20:HvTable.c     **** hv_size_t hTable_init(HvTable *o, int length) {
+  37              		.loc 1 20 47 view -0
+  38              		.cfi_startproc
+  39              		@ args = 0, pretend = 0, frame = 0
+  40              		@ frame_needed = 0, uses_anonymous_args = 0
+  21:HvTable.c     ****   o->length = length;
+  41              		.loc 1 21 3 view .LVU1
+  20:HvTable.c     ****   o->length = length;
+  42              		.loc 1 20 47 is_stmt 0 view .LVU2
+  43 0000 38B5     		push	{r3, r4, r5, lr}
+  44              		.cfi_def_cfa_offset 16
+  45              		.cfi_offset 3, -16
+  46              		.cfi_offset 4, -12
+  47              		.cfi_offset 5, -8
+  48              		.cfi_offset 14, -4
+  20:HvTable.c     ****   o->length = length;
+  49              		.loc 1 20 47 view .LVU3
+  50 0002 0B46     		mov	r3, r1
+  22:HvTable.c     ****   // true size of the table is always an integer multple of HV_N_SIMD
+  23:HvTable.c     ****   o->size = (length + HV_N_SIMD_MASK) & ~HV_N_SIMD_MASK;
+  24:HvTable.c     ****   // add an extra length for mirroring
+  25:HvTable.c     ****   o->allocated = o->size + HV_N_SIMD;
+  26:HvTable.c     ****   o->head = 0;
+  27:HvTable.c     ****   hv_size_t numBytes = o->allocated * sizeof(float);
+  28:HvTable.c     ****   o->buffer = (float *) hv_malloc(numBytes);
+  51              		.loc 1 28 25 view .LVU4
+  52 0004 0121     		movs	r1, #1
+  53              	.LVL1:
+  26:HvTable.c     ****   hv_size_t numBytes = o->allocated * sizeof(float);
+  54              		.loc 1 26 11 view .LVU5
+  55 0006 0025     		movs	r5, #0
+  20:HvTable.c     ****   o->length = length;
+  56              		.loc 1 20 47 view .LVU6
+  57 0008 0446     		mov	r4, r0
+  25:HvTable.c     ****   o->head = 0;
+  58              		.loc 1 25 26 view .LVU7
+  59 000a 5A18     		adds	r2, r3, r1
+  26:HvTable.c     ****   hv_size_t numBytes = o->allocated * sizeof(float);
+  60              		.loc 1 26 11 view .LVU8
+  61 000c 0561     		str	r5, [r0, #16]
+  27:HvTable.c     ****   o->buffer = (float *) hv_malloc(numBytes);
+  62              		.loc 1 27 13 view .LVU9
+  63 000e 9500     		lsls	r5, r2, #2
+  25:HvTable.c     ****   o->head = 0;
+  64              		.loc 1 25 16 view .LVU10
+  65 0010 C260     		str	r2, [r0, #12]
+  23:HvTable.c     ****   // add an extra length for mirroring
+  66              		.loc 1 23 11 view .LVU11
+  67 0012 C0E90133 		strd	r3, r3, [r0, #4]
+  25:HvTable.c     ****   o->head = 0;
+  68              		.loc 1 25 3 is_stmt 1 view .LVU12
+  26:HvTable.c     ****   hv_size_t numBytes = o->allocated * sizeof(float);
+  69              		.loc 1 26 3 view .LVU13
+  27:HvTable.c     ****   o->buffer = (float *) hv_malloc(numBytes);
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 3
+
+
+  70              		.loc 1 27 3 view .LVU14
+  71              	.LVL2:
+  72              		.loc 1 28 3 view .LVU15
+  73              		.loc 1 28 25 is_stmt 0 view .LVU16
+  74 0016 2846     		mov	r0, r5
+  75              	.LVL3:
+  76              		.loc 1 28 25 view .LVU17
+  77 0018 FFF7FEFF 		bl	calloc
+  78              	.LVL4:
+  79              		.loc 1 28 13 view .LVU18
+  80 001c 2060     		str	r0, [r4]
+  29:HvTable.c     ****   hv_assert(o->buffer != NULL);
+  81              		.loc 1 29 3 is_stmt 1 view .LVU19
+  82 001e 08B1     		cbz	r0, .L5
+  30:HvTable.c     ****   hv_memclear(o->buffer, numBytes);
+  31:HvTable.c     ****   return numBytes;
+  32:HvTable.c     **** }
+  83              		.loc 1 32 1 is_stmt 0 view .LVU20
+  84 0020 2846     		mov	r0, r5
+  85 0022 38BD     		pop	{r3, r4, r5, pc}
+  86              	.LVL5:
+  87              	.L5:
+  29:HvTable.c     ****   hv_assert(o->buffer != NULL);
+  88              		.loc 1 29 3 discriminator 1 view .LVU21
+  89 0024 024B     		ldr	r3, .L6
+  90 0026 1D21     		movs	r1, #29
+  91 0028 024A     		ldr	r2, .L6+4
+  92 002a 0348     		ldr	r0, .L6+8
+  93 002c FFF7FEFF 		bl	__assert_func
+  94              	.LVL6:
+  95              	.L7:
+  96              		.align	2
+  97              	.L6:
+  98 0030 00000000 		.word	.LC0
+  99 0034 00000000 		.word	.LANCHOR0
+ 100 0038 1C000000 		.word	.LC1
+ 101              		.cfi_endproc
+ 102              	.LFE368:
+ 104              		.section	.text.hTable_initWithData,"ax",%progbits
+ 105              		.align	1
+ 106              		.p2align 2,,3
+ 107              		.global	hTable_initWithData
+ 108              		.syntax unified
+ 109              		.thumb
+ 110              		.thumb_func
+ 111              		.fpu fpv5-d16
+ 113              	hTable_initWithData:
+ 114              	.LVL7:
+ 115              	.LFB369:
+  33:HvTable.c     **** 
+  34:HvTable.c     **** hv_size_t hTable_initWithData(HvTable *o, int length, const float *data) {
+ 116              		.loc 1 34 74 is_stmt 1 view -0
+ 117              		.cfi_startproc
+ 118              		@ args = 0, pretend = 0, frame = 0
+ 119              		@ frame_needed = 0, uses_anonymous_args = 0
+  35:HvTable.c     ****   o->length = length;
+ 120              		.loc 1 35 3 view .LVU23
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 4
+
+
+  34:HvTable.c     ****   o->length = length;
+ 121              		.loc 1 34 74 is_stmt 0 view .LVU24
+ 122 0000 0B46     		mov	r3, r1
+  36:HvTable.c     ****   o->size = (length + HV_N_SIMD_MASK) & ~HV_N_SIMD_MASK;
+  37:HvTable.c     ****   o->allocated = o->size + HV_N_SIMD;
+  38:HvTable.c     ****   o->head = 0;
+  39:HvTable.c     ****   hv_size_t numBytes = o->size * sizeof(float);
+  40:HvTable.c     ****   o->buffer = (float *) hv_malloc(numBytes);
+ 123              		.loc 1 40 25 view .LVU25
+ 124 0002 0121     		movs	r1, #1
+ 125              	.LVL8:
+  34:HvTable.c     ****   o->length = length;
+ 126              		.loc 1 34 74 view .LVU26
+ 127 0004 70B5     		push	{r4, r5, r6, lr}
+ 128              		.cfi_def_cfa_offset 16
+ 129              		.cfi_offset 4, -16
+ 130              		.cfi_offset 5, -12
+ 131              		.cfi_offset 6, -8
+ 132              		.cfi_offset 14, -4
+  38:HvTable.c     ****   hv_size_t numBytes = o->size * sizeof(float);
+ 133              		.loc 1 38 11 view .LVU27
+ 134 0006 0024     		movs	r4, #0
+  34:HvTable.c     ****   o->length = length;
+ 135              		.loc 1 34 74 view .LVU28
+ 136 0008 1646     		mov	r6, r2
+  37:HvTable.c     ****   o->head = 0;
+ 137              		.loc 1 37 26 view .LVU29
+ 138 000a 5A18     		adds	r2, r3, r1
+ 139              	.LVL9:
+  34:HvTable.c     ****   o->length = length;
+ 140              		.loc 1 34 74 view .LVU30
+ 141 000c 0546     		mov	r5, r0
+  37:HvTable.c     ****   o->head = 0;
+ 142              		.loc 1 37 16 view .LVU31
+ 143 000e C0E90324 		strd	r2, r4, [r0, #12]
+  39:HvTable.c     ****   o->buffer = (float *) hv_malloc(numBytes);
+ 144              		.loc 1 39 13 view .LVU32
+ 145 0012 9C00     		lsls	r4, r3, #2
+  36:HvTable.c     ****   o->allocated = o->size + HV_N_SIMD;
+ 146              		.loc 1 36 11 view .LVU33
+ 147 0014 C0E90133 		strd	r3, r3, [r0, #4]
+  37:HvTable.c     ****   o->head = 0;
+ 148              		.loc 1 37 3 is_stmt 1 view .LVU34
+  38:HvTable.c     ****   hv_size_t numBytes = o->size * sizeof(float);
+ 149              		.loc 1 38 3 view .LVU35
+  39:HvTable.c     ****   o->buffer = (float *) hv_malloc(numBytes);
+ 150              		.loc 1 39 3 view .LVU36
+ 151              	.LVL10:
+ 152              		.loc 1 40 3 view .LVU37
+ 153              		.loc 1 40 25 is_stmt 0 view .LVU38
+ 154 0018 2046     		mov	r0, r4
+ 155              	.LVL11:
+ 156              		.loc 1 40 25 view .LVU39
+ 157 001a FFF7FEFF 		bl	calloc
+ 158              	.LVL12:
+ 159              		.loc 1 40 13 view .LVU40
+ 160 001e 2860     		str	r0, [r5]
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 5
+
+
+  41:HvTable.c     ****   hv_assert(o->buffer != NULL);
+ 161              		.loc 1 41 3 is_stmt 1 view .LVU41
+ 162 0020 28B1     		cbz	r0, .L11
+  42:HvTable.c     ****   hv_memclear(o->buffer, numBytes);
+ 163              		.loc 1 42 3 view .LVU42
+  43:HvTable.c     ****   hv_memcpy(o->buffer, data, length*sizeof(float));
+ 164              		.loc 1 43 3 view .LVU43
+ 165 0022 2246     		mov	r2, r4
+ 166 0024 3146     		mov	r1, r6
+ 167 0026 FFF7FEFF 		bl	memcpy
+ 168              	.LVL13:
+  44:HvTable.c     ****   return numBytes;
+ 169              		.loc 1 44 3 view .LVU44
+  45:HvTable.c     **** }
+ 170              		.loc 1 45 1 is_stmt 0 view .LVU45
+ 171 002a 2046     		mov	r0, r4
+ 172 002c 70BD     		pop	{r4, r5, r6, pc}
+ 173              	.LVL14:
+ 174              	.L11:
+  41:HvTable.c     ****   hv_memclear(o->buffer, numBytes);
+ 175              		.loc 1 41 3 discriminator 1 view .LVU46
+ 176 002e 034B     		ldr	r3, .L12
+ 177 0030 2921     		movs	r1, #41
+ 178 0032 034A     		ldr	r2, .L12+4
+ 179 0034 0348     		ldr	r0, .L12+8
+ 180 0036 FFF7FEFF 		bl	__assert_func
+ 181              	.LVL15:
+ 182              	.L13:
+ 183 003a 00BF     		.align	2
+ 184              	.L12:
+ 185 003c 00000000 		.word	.LC0
+ 186 0040 00000000 		.word	.LANCHOR1
+ 187 0044 1C000000 		.word	.LC1
+ 188              		.cfi_endproc
+ 189              	.LFE369:
+ 191              		.section	.text.hTable_initWithFinalData,"ax",%progbits
+ 192              		.align	1
+ 193              		.p2align 2,,3
+ 194              		.global	hTable_initWithFinalData
+ 195              		.syntax unified
+ 196              		.thumb
+ 197              		.thumb_func
+ 198              		.fpu fpv5-d16
+ 200              	hTable_initWithFinalData:
+ 201              	.LVL16:
+ 202              	.LFB370:
+  46:HvTable.c     **** 
+  47:HvTable.c     **** hv_size_t hTable_initWithFinalData(HvTable *o, int length, float *data) {
+ 203              		.loc 1 47 73 is_stmt 1 view -0
+ 204              		.cfi_startproc
+ 205              		@ args = 0, pretend = 0, frame = 0
+ 206              		@ frame_needed = 0, uses_anonymous_args = 0
+ 207              		@ link register save eliminated.
+  48:HvTable.c     ****   o->length = length;
+ 208              		.loc 1 48 3 view .LVU48
+  47:HvTable.c     ****   o->length = length;
+ 209              		.loc 1 47 73 is_stmt 0 view .LVU49
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 6
+
+
+ 210 0000 10B4     		push	{r4}
+ 211              		.cfi_def_cfa_offset 4
+ 212              		.cfi_offset 4, -4
+  47:HvTable.c     ****   o->length = length;
+ 213              		.loc 1 47 73 view .LVU50
+ 214 0002 0346     		mov	r3, r0
+  49:HvTable.c     ****   o->size = length;
+  50:HvTable.c     ****   o->allocated = length;
+  51:HvTable.c     ****   o->buffer = data;
+  52:HvTable.c     ****   o->head = 0;
+ 215              		.loc 1 52 11 view .LVU51
+ 216 0004 0024     		movs	r4, #0
+  49:HvTable.c     ****   o->size = length;
+ 217              		.loc 1 49 11 view .LVU52
+ 218 0006 C3E90111 		strd	r1, r1, [r3, #4]
+  50:HvTable.c     ****   o->buffer = data;
+ 219              		.loc 1 50 3 is_stmt 1 view .LVU53
+  53:HvTable.c     ****   return 0;
+  54:HvTable.c     **** }
+ 220              		.loc 1 54 1 is_stmt 0 view .LVU54
+ 221 000a 2046     		mov	r0, r4
+ 222              	.LVL17:
+  52:HvTable.c     ****   return 0;
+ 223              		.loc 1 52 11 view .LVU55
+ 224 000c 1C61     		str	r4, [r3, #16]
+  50:HvTable.c     ****   o->buffer = data;
+ 225              		.loc 1 50 16 view .LVU56
+ 226 000e D960     		str	r1, [r3, #12]
+  51:HvTable.c     ****   o->head = 0;
+ 227              		.loc 1 51 3 is_stmt 1 view .LVU57
+ 228              		.loc 1 54 1 is_stmt 0 view .LVU58
+ 229 0010 5DF8044B 		ldr	r4, [sp], #4
+ 230              		.cfi_restore 4
+ 231              		.cfi_def_cfa_offset 0
+  51:HvTable.c     ****   o->head = 0;
+ 232              		.loc 1 51 13 view .LVU59
+ 233 0014 1A60     		str	r2, [r3]
+  52:HvTable.c     ****   return 0;
+ 234              		.loc 1 52 3 is_stmt 1 view .LVU60
+  53:HvTable.c     ****   return 0;
+ 235              		.loc 1 53 3 view .LVU61
+ 236              		.loc 1 54 1 is_stmt 0 view .LVU62
+ 237 0016 7047     		bx	lr
+ 238              		.cfi_endproc
+ 239              	.LFE370:
+ 241              		.section	.text.hTable_free,"ax",%progbits
+ 242              		.align	1
+ 243              		.p2align 2,,3
+ 244              		.global	hTable_free
+ 245              		.syntax unified
+ 246              		.thumb
+ 247              		.thumb_func
+ 248              		.fpu fpv5-d16
+ 250              	hTable_free:
+ 251              	.LVL18:
+ 252              	.LFB371:
+  55:HvTable.c     **** 
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 7
+
+
+  56:HvTable.c     **** void hTable_free(HvTable *o) {
+ 253              		.loc 1 56 30 is_stmt 1 view -0
+ 254              		.cfi_startproc
+ 255              		@ args = 0, pretend = 0, frame = 0
+ 256              		@ frame_needed = 0, uses_anonymous_args = 0
+ 257              		@ link register save eliminated.
+  57:HvTable.c     ****   hv_free(o->buffer);
+ 258              		.loc 1 57 3 view .LVU64
+ 259 0000 0068     		ldr	r0, [r0]
+ 260              	.LVL19:
+ 261              		.loc 1 57 3 is_stmt 0 view .LVU65
+ 262 0002 FFF7FEBF 		b	free
+ 263              	.LVL20:
+ 264              		.cfi_endproc
+ 265              	.LFE371:
+ 267 0006 00BF     		.section	.rodata.hTable_resize.str1.4,"aMS",%progbits,1
+ 268              		.align	2
+ 269              	.LC2:
+ 270 0000 6220213D 		.ascii	"b != ((void *)0)\000"
+ 270      20282876 
+ 270      6F696420 
+ 270      2A293029 
+ 270      00
+ 271              		.section	.text.hTable_resize,"ax",%progbits
+ 272              		.align	1
+ 273              		.p2align 2,,3
+ 274              		.global	hTable_resize
+ 275              		.syntax unified
+ 276              		.thumb
+ 277              		.thumb_func
+ 278              		.fpu fpv5-d16
+ 280              	hTable_resize:
+ 281              	.LVL21:
+ 282              	.LFB372:
+  58:HvTable.c     **** }
+  59:HvTable.c     **** 
+  60:HvTable.c     **** int hTable_resize(HvTable *o, hv_uint32_t newLength) {
+ 283              		.loc 1 60 54 is_stmt 1 view -0
+ 284              		.cfi_startproc
+ 285              		@ args = 0, pretend = 0, frame = 0
+ 286              		@ frame_needed = 0, uses_anonymous_args = 0
+  61:HvTable.c     ****   // TODO(mhroth): update context with memory allocated by table
+  62:HvTable.c     ****   // NOTE(mhroth): mirrored bytes are not necessarily carried over
+  63:HvTable.c     ****   const hv_uint32_t newSize = (newLength + HV_N_SIMD_MASK) & ~HV_N_SIMD_MASK;
+ 287              		.loc 1 63 3 view .LVU67
+  64:HvTable.c     ****   if (newSize == o->size) return 0; // early exit if no change in size
+ 288              		.loc 1 64 3 view .LVU68
+  60:HvTable.c     ****   // TODO(mhroth): update context with memory allocated by table
+ 289              		.loc 1 60 54 is_stmt 0 view .LVU69
+ 290 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 291              		.cfi_def_cfa_offset 24
+ 292              		.cfi_offset 4, -24
+ 293              		.cfi_offset 5, -20
+ 294              		.cfi_offset 6, -16
+ 295              		.cfi_offset 7, -12
+ 296              		.cfi_offset 8, -8
+ 297              		.cfi_offset 14, -4
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 8
+
+
+ 298              		.loc 1 64 19 view .LVU70
+ 299 0004 8568     		ldr	r5, [r0, #8]
+ 300              		.loc 1 64 6 view .LVU71
+ 301 0006 8D42     		cmp	r5, r1
+ 302 0008 21D0     		beq	.L21
+  65:HvTable.c     ****   const hv_uint32_t oldSizeBytes = (hv_uint32_t) (o->size * sizeof(float));
+ 303              		.loc 1 65 3 is_stmt 1 view .LVU72
+  66:HvTable.c     ****   const hv_uint32_t newAllocated = newSize + HV_N_SIMD;
+ 304              		.loc 1 66 21 is_stmt 0 view .LVU73
+ 305 000a 01F10108 		add	r8, r1, #1
+ 306 000e 0446     		mov	r4, r0
+ 307 0010 0E46     		mov	r6, r1
+  67:HvTable.c     ****   const hv_uint32_t newAllocatedBytes = (hv_uint32_t) (newAllocated * sizeof(float));
+  68:HvTable.c     **** 
+  69:HvTable.c     ****   float *b = (float *) hv_realloc(o->buffer, newAllocatedBytes);
+ 308              		.loc 1 69 24 view .LVU74
+ 309 0012 0068     		ldr	r0, [r0]
+ 310              	.LVL22:
+ 311              		.loc 1 69 24 view .LVU75
+ 312 0014 4FEA8801 		lsl	r1, r8, #2
+ 313              	.LVL23:
+ 314              		.loc 1 69 24 view .LVU76
+ 315 0018 FFF7FEFF 		bl	realloc
+ 316              	.LVL24:
+  70:HvTable.c     ****   hv_assert(b != NULL); // error while reallocing!
+ 317              		.loc 1 70 3 view .LVU77
+ 318 001c 0746     		mov	r7, r0
+  65:HvTable.c     ****   const hv_uint32_t newAllocated = newSize + HV_N_SIMD;
+ 319              		.loc 1 65 21 view .LVU78
+ 320 001e AD00     		lsls	r5, r5, #2
+ 321              	.LVL25:
+  66:HvTable.c     ****   const hv_uint32_t newAllocatedBytes = (hv_uint32_t) (newAllocated * sizeof(float));
+ 322              		.loc 1 66 3 is_stmt 1 view .LVU79
+  67:HvTable.c     **** 
+ 323              		.loc 1 67 3 view .LVU80
+  69:HvTable.c     ****   hv_assert(b != NULL); // error while reallocing!
+ 324              		.loc 1 69 3 view .LVU81
+ 325              		.loc 1 70 3 view .LVU82
+ 326 0020 C0B1     		cbz	r0, .L23
+  71:HvTable.c     ****   // ensure that hv_realloc has given us a correctly aligned buffer
+  72:HvTable.c     ****   if ((((hv_uintptr_t) (const void *) b) & ((0x1<<HV_N_SIMD)-1)) == 0) {
+ 327              		.loc 1 72 3 view .LVU83
+  73:HvTable.c     ****     if (newSize > o->size) {
+ 328              		.loc 1 73 5 view .LVU84
+ 329              		.loc 1 73 20 is_stmt 0 view .LVU85
+ 330 0022 A068     		ldr	r0, [r4, #8]
+ 331              	.LVL26:
+ 332              		.loc 1 73 8 view .LVU86
+ 333 0024 B042     		cmp	r0, r6
+ 334 0026 09D3     		bcc	.L24
+ 335              	.L20:
+  74:HvTable.c     ****       hv_memclear(b + o->size, (newAllocated - o->size) * sizeof(float)); // clear new parts of the
+  75:HvTable.c     ****     }
+  76:HvTable.c     ****     o->buffer = b;
+ 336              		.loc 1 76 5 is_stmt 1 view .LVU87
+  77:HvTable.c     ****   } else {
+  78:HvTable.c     ****     // if not, we have to re-malloc ourselves
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 9
+
+
+  79:HvTable.c     ****     char *c = (char *) hv_malloc(newAllocatedBytes);
+  80:HvTable.c     ****     hv_assert(c != NULL); // error while allocating new buffer!
+  81:HvTable.c     ****     if (newAllocatedBytes > oldSizeBytes) {
+  82:HvTable.c     ****       hv_memcpy(c, b, oldSizeBytes);
+  83:HvTable.c     ****       hv_memclear(c + oldSizeBytes, newAllocatedBytes - oldSizeBytes);
+  84:HvTable.c     ****     } else {
+  85:HvTable.c     ****       hv_memcpy(c, b, newAllocatedBytes);
+  86:HvTable.c     ****     }
+  87:HvTable.c     ****     hv_free(b);
+  88:HvTable.c     ****     o->buffer = (float *) c;
+  89:HvTable.c     ****   }
+  90:HvTable.c     ****   o->length = newLength;
+  91:HvTable.c     ****   o->size = newSize;
+  92:HvTable.c     ****   o->allocated = newAllocated;
+  93:HvTable.c     ****   return (int) (newAllocated - oldSizeBytes - (HV_N_SIMD*sizeof(float)));
+ 337              		.loc 1 93 30 is_stmt 0 view .LVU88
+ 338 0028 A8EB0505 		sub	r5, r8, r5
+ 339              	.LVL27:
+  91:HvTable.c     ****   o->allocated = newAllocated;
+ 340              		.loc 1 91 11 view .LVU89
+ 341 002c A660     		str	r6, [r4, #8]
+  92:HvTable.c     ****   return (int) (newAllocated - oldSizeBytes - (HV_N_SIMD*sizeof(float)));
+ 342              		.loc 1 92 16 view .LVU90
+ 343 002e C4F80C80 		str	r8, [r4, #12]
+ 344              		.loc 1 93 45 view .LVU91
+ 345 0032 281F     		subs	r0, r5, #4
+  90:HvTable.c     ****   o->size = newSize;
+ 346              		.loc 1 90 13 view .LVU92
+ 347 0034 C4E90076 		strd	r7, r6, [r4]
+  91:HvTable.c     ****   o->allocated = newAllocated;
+ 348              		.loc 1 91 3 is_stmt 1 view .LVU93
+  92:HvTable.c     ****   return (int) (newAllocated - oldSizeBytes - (HV_N_SIMD*sizeof(float)));
+ 349              		.loc 1 92 3 view .LVU94
+ 350              		.loc 1 93 3 view .LVU95
+  94:HvTable.c     **** }
+ 351              		.loc 1 94 1 is_stmt 0 view .LVU96
+ 352 0038 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 353              	.LVL28:
+ 354              	.L24:
+  74:HvTable.c     ****     }
+ 355              		.loc 1 74 7 is_stmt 1 view .LVU97
+ 356 003c A8EB0002 		sub	r2, r8, r0
+ 357 0040 0021     		movs	r1, #0
+ 358 0042 07EB8000 		add	r0, r7, r0, lsl #2
+ 359 0046 9200     		lsls	r2, r2, #2
+ 360 0048 FFF7FEFF 		bl	memset
+ 361              	.LVL29:
+ 362 004c ECE7     		b	.L20
+ 363              	.LVL30:
+ 364              	.L21:
+  64:HvTable.c     ****   const hv_uint32_t oldSizeBytes = (hv_uint32_t) (o->size * sizeof(float));
+ 365              		.loc 1 64 34 is_stmt 0 view .LVU98
+ 366 004e 0020     		movs	r0, #0
+ 367              	.LVL31:
+ 368              		.loc 1 94 1 view .LVU99
+ 369 0050 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 370              	.LVL32:
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 10
+
+
+ 371              	.L23:
+  70:HvTable.c     ****   // ensure that hv_realloc has given us a correctly aligned buffer
+ 372              		.loc 1 70 3 discriminator 1 view .LVU100
+ 373 0054 024B     		ldr	r3, .L25
+ 374 0056 4621     		movs	r1, #70
+ 375 0058 024A     		ldr	r2, .L25+4
+ 376 005a 0348     		ldr	r0, .L25+8
+ 377              	.LVL33:
+  70:HvTable.c     ****   // ensure that hv_realloc has given us a correctly aligned buffer
+ 378              		.loc 1 70 3 discriminator 1 view .LVU101
+ 379 005c FFF7FEFF 		bl	__assert_func
+ 380              	.LVL34:
+ 381              	.L26:
+ 382              		.align	2
+ 383              	.L25:
+ 384 0060 00000000 		.word	.LC2
+ 385 0064 00000000 		.word	.LANCHOR2
+ 386 0068 1C000000 		.word	.LC1
+ 387              		.cfi_endproc
+ 388              	.LFE372:
+ 390              		.section	.rodata.hTable_onMessage.str1.4,"aMS",%progbits,1
+ 391              		.align	2
+ 392              	.LC3:
+ 393 0000 72657369 		.ascii	"resize\000"
+ 393      7A6500
+ 394 0007 00       		.align	2
+ 395              	.LC4:
+ 396 0008 6D697272 		.ascii	"mirror\000"
+ 396      6F7200
+ 397              		.section	.text.hTable_onMessage,"ax",%progbits
+ 398              		.align	1
+ 399              		.p2align 2,,3
+ 400              		.global	hTable_onMessage
+ 401              		.syntax unified
+ 402              		.thumb
+ 403              		.thumb_func
+ 404              		.fpu fpv5-d16
+ 406              	hTable_onMessage:
+ 407              	.LVL35:
+ 408              	.LFB373:
+  95:HvTable.c     **** 
+  96:HvTable.c     **** void hTable_onMessage(HeavyContextInterface *_c, HvTable *o, int letIn, const HvMessage *m,
+  97:HvTable.c     ****     void (*sendMessage)(HeavyContextInterface *, int, const HvMessage *)) {
+ 409              		.loc 1 97 75 is_stmt 1 view -0
+ 410              		.cfi_startproc
+ 411              		@ args = 4, pretend = 0, frame = 8
+ 412              		@ frame_needed = 1, uses_anonymous_args = 0
+  98:HvTable.c     ****   if (msg_compareSymbol(m,0,"resize") && msg_isFloat(m,1) && msg_getFloat(m,1) >= 0.0f) {
+ 413              		.loc 1 98 3 view .LVU103
+  97:HvTable.c     ****   if (msg_compareSymbol(m,0,"resize") && msg_isFloat(m,1) && msg_getFloat(m,1) >= 0.0f) {
+ 414              		.loc 1 97 75 is_stmt 0 view .LVU104
+ 415 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 416              		.cfi_def_cfa_offset 20
+ 417              		.cfi_offset 4, -20
+ 418              		.cfi_offset 5, -16
+ 419              		.cfi_offset 6, -12
+ 420              		.cfi_offset 7, -8
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 11
+
+
+ 421              		.cfi_offset 14, -4
+ 422 0002 83B0     		sub	sp, sp, #12
+ 423              		.cfi_def_cfa_offset 32
+ 424 0004 0D46     		mov	r5, r1
+ 425 0006 0646     		mov	r6, r0
+ 426              		.loc 1 98 7 view .LVU105
+ 427 0008 1F4A     		ldr	r2, .L40
+ 428              	.LVL36:
+  97:HvTable.c     ****   if (msg_compareSymbol(m,0,"resize") && msg_isFloat(m,1) && msg_getFloat(m,1) >= 0.0f) {
+ 429              		.loc 1 97 75 view .LVU106
+ 430              		.loc 1 98 7 view .LVU107
+ 431 000a 0021     		movs	r1, #0
+ 432              	.LVL37:
+  97:HvTable.c     ****   if (msg_compareSymbol(m,0,"resize") && msg_isFloat(m,1) && msg_getFloat(m,1) >= 0.0f) {
+ 433              		.loc 1 97 75 view .LVU108
+ 434 000c 00AF     		add	r7, sp, #0
+ 435              		.cfi_def_cfa_register 7
+ 436              		.loc 1 98 7 view .LVU109
+ 437 000e 1846     		mov	r0, r3
+ 438              	.LVL38:
+  97:HvTable.c     ****   if (msg_compareSymbol(m,0,"resize") && msg_isFloat(m,1) && msg_getFloat(m,1) >= 0.0f) {
+ 439              		.loc 1 97 75 view .LVU110
+ 440 0010 1C46     		mov	r4, r3
+ 441              		.loc 1 98 7 view .LVU111
+ 442 0012 FFF7FEFF 		bl	msg_compareSymbol
+ 443              	.LVL39:
+ 444              		.loc 1 98 6 view .LVU112
+ 445 0016 10B1     		cbz	r0, .L28
+ 446              	.LVL40:
+ 447              	.LBB50:
+ 448              	.LBI50:
+ 449              		.file 2 "HvMessage.h"
+   1:HvMessage.h   **** /**
+   2:HvMessage.h   ****  * Copyright (c) 2014-2018 Enzien Audio Ltd.
+   3:HvMessage.h   ****  *
+   4:HvMessage.h   ****  * Permission to use, copy, modify, and/or distribute this software for any
+   5:HvMessage.h   ****  * purpose with or without fee is hereby granted, provided that the above
+   6:HvMessage.h   ****  * copyright notice and this permission notice appear in all copies.
+   7:HvMessage.h   ****  *
+   8:HvMessage.h   ****  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+   9:HvMessage.h   ****  * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  10:HvMessage.h   ****  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  11:HvMessage.h   ****  * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  12:HvMessage.h   ****  * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  13:HvMessage.h   ****  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  14:HvMessage.h   ****  * PERFORMANCE OF THIS SOFTWARE.
+  15:HvMessage.h   ****  */
+  16:HvMessage.h   **** 
+  17:HvMessage.h   **** #ifndef _HEAVY_MESSAGE_H_
+  18:HvMessage.h   **** #define _HEAVY_MESSAGE_H_
+  19:HvMessage.h   **** 
+  20:HvMessage.h   **** #include "HvUtils.h"
+  21:HvMessage.h   **** 
+  22:HvMessage.h   **** #ifdef __cplusplus
+  23:HvMessage.h   **** extern "C" {
+  24:HvMessage.h   **** #endif
+  25:HvMessage.h   **** 
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 12
+
+
+  26:HvMessage.h   **** typedef enum ElementType {
+  27:HvMessage.h   ****   HV_MSG_BANG = 0,
+  28:HvMessage.h   ****   HV_MSG_FLOAT = 1,
+  29:HvMessage.h   ****   HV_MSG_SYMBOL = 2,
+  30:HvMessage.h   ****   HV_MSG_HASH = 3
+  31:HvMessage.h   **** } ElementType;
+  32:HvMessage.h   **** 
+  33:HvMessage.h   **** typedef struct Element {
+  34:HvMessage.h   ****   ElementType type;
+  35:HvMessage.h   ****   union {
+  36:HvMessage.h   ****     float f; // float
+  37:HvMessage.h   ****     const char *s; // symbol
+  38:HvMessage.h   ****     hv_uint32_t h; // hash
+  39:HvMessage.h   ****   } data;
+  40:HvMessage.h   **** } Element;
+  41:HvMessage.h   **** 
+  42:HvMessage.h   **** typedef struct HvMessage {
+  43:HvMessage.h   ****   hv_uint32_t timestamp; // the sample at which this message should be processed
+  44:HvMessage.h   ****   hv_uint16_t numElements;
+  45:HvMessage.h   ****   hv_uint16_t numBytes; // the total number of bytes that this message occupies in memory, includin
+  46:HvMessage.h   ****   Element elem;
+  47:HvMessage.h   **** } HvMessage;
+  48:HvMessage.h   **** 
+  49:HvMessage.h   **** typedef struct ReceiverMessagePair {
+  50:HvMessage.h   ****   hv_uint32_t receiverHash;
+  51:HvMessage.h   ****   HvMessage msg;
+  52:HvMessage.h   **** } ReceiverMessagePair;
+  53:HvMessage.h   **** 
+  54:HvMessage.h   **** #define HV_MESSAGE_ON_STACK(_x) (HvMessage *) hv_alloca(msg_getCoreSize(_x))
+  55:HvMessage.h   **** 
+  56:HvMessage.h   **** /** Returns the number of bytes that this message consumes in memory, not including strings. */
+  57:HvMessage.h   **** static inline hv_size_t msg_getCoreSize(hv_size_t numElements) {
+  58:HvMessage.h   ****   hv_assert(numElements > 0);
+  59:HvMessage.h   ****   return sizeof(HvMessage) + ((numElements-1) * sizeof(Element));
+  60:HvMessage.h   **** }
+  61:HvMessage.h   **** 
+  62:HvMessage.h   **** HvMessage *msg_copy(const HvMessage *m);
+  63:HvMessage.h   **** 
+  64:HvMessage.h   **** /** Copies the message into the given buffer. The buffer must be at least as large as msg_getNumHea
+  65:HvMessage.h   **** void msg_copyToBuffer(const HvMessage *m, char *buffer, hv_size_t len);
+  66:HvMessage.h   **** 
+  67:HvMessage.h   **** void msg_setElementToFrom(HvMessage *n, int indexN, const HvMessage *const m, int indexM);
+  68:HvMessage.h   **** 
+  69:HvMessage.h   **** /** Frees a message on the heap. Does nothing if argument is NULL. */
+  70:HvMessage.h   **** void msg_free(HvMessage *m);
+  71:HvMessage.h   **** 
+  72:HvMessage.h   **** HvMessage *msg_init(HvMessage *m, hv_size_t numElements, hv_uint32_t timestamp);
+  73:HvMessage.h   **** 
+  74:HvMessage.h   **** HvMessage *msg_initWithFloat(HvMessage *m, hv_uint32_t timestamp, float f);
+  75:HvMessage.h   **** 
+  76:HvMessage.h   **** HvMessage *msg_initWithBang(HvMessage *m, hv_uint32_t timestamp);
+  77:HvMessage.h   **** 
+  78:HvMessage.h   **** HvMessage *msg_initWithSymbol(HvMessage *m, hv_uint32_t timestamp, const char *s);
+  79:HvMessage.h   **** 
+  80:HvMessage.h   **** HvMessage *msg_initWithHash(HvMessage *m, hv_uint32_t timestamp, hv_uint32_t h);
+  81:HvMessage.h   **** 
+  82:HvMessage.h   **** static inline hv_uint32_t msg_getTimestamp(const HvMessage *m) {
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 13
+
+
+  83:HvMessage.h   ****   return m->timestamp;
+  84:HvMessage.h   **** }
+  85:HvMessage.h   **** 
+  86:HvMessage.h   **** static inline void msg_setTimestamp(HvMessage *m, hv_uint32_t timestamp) {
+  87:HvMessage.h   ****   m->timestamp = timestamp;
+  88:HvMessage.h   **** }
+  89:HvMessage.h   **** 
+  90:HvMessage.h   **** static inline int msg_getNumElements(const HvMessage *m) {
+  91:HvMessage.h   ****   return (int) m->numElements;
+  92:HvMessage.h   **** }
+  93:HvMessage.h   **** 
+  94:HvMessage.h   **** /** Returns the total number of bytes this message consumes in memory. */
+  95:HvMessage.h   **** static inline hv_uint32_t msg_getSize(const HvMessage *m) {
+  96:HvMessage.h   ****   return m->numBytes;
+  97:HvMessage.h   **** }
+  98:HvMessage.h   **** 
+  99:HvMessage.h   **** static inline ElementType msg_getType(const HvMessage *m, int index) {
+ 100:HvMessage.h   ****   hv_assert(index < msg_getNumElements(m)); // invalid index
+ 101:HvMessage.h   ****   return (&(m->elem)+index)->type;
+ 102:HvMessage.h   **** }
+ 103:HvMessage.h   **** 
+ 104:HvMessage.h   **** static inline void msg_setBang(HvMessage *m, int index) {
+ 105:HvMessage.h   ****   hv_assert(index < msg_getNumElements(m)); // invalid index
+ 106:HvMessage.h   ****   (&(m->elem)+index)->type = HV_MSG_BANG;
+ 107:HvMessage.h   ****   (&(m->elem)+index)->data.s = NULL;
+ 108:HvMessage.h   **** }
+ 109:HvMessage.h   **** 
+ 110:HvMessage.h   **** static inline bool msg_isBang(const HvMessage *m, int index) {
+ 111:HvMessage.h   ****   return (index < msg_getNumElements(m)) ? (msg_getType(m,index) == HV_MSG_BANG) : false;
+ 112:HvMessage.h   **** }
+ 113:HvMessage.h   **** 
+ 114:HvMessage.h   **** static inline void msg_setFloat(HvMessage *m, int index, float f) {
+ 115:HvMessage.h   ****   hv_assert(index < msg_getNumElements(m)); // invalid index
+ 116:HvMessage.h   ****   (&(m->elem)+index)->type = HV_MSG_FLOAT;
+ 117:HvMessage.h   ****   (&(m->elem)+index)->data.f = f;
+ 118:HvMessage.h   **** }
+ 119:HvMessage.h   **** 
+ 120:HvMessage.h   **** static inline float msg_getFloat(const HvMessage *const m, int index) {
+ 121:HvMessage.h   ****   hv_assert(index < msg_getNumElements(m)); // invalid index
+ 122:HvMessage.h   ****   return (&(m->elem)+index)->data.f;
+ 123:HvMessage.h   **** }
+ 124:HvMessage.h   **** 
+ 125:HvMessage.h   **** static inline bool msg_isFloat(const HvMessage *const m, int index) {
+ 450              		.loc 2 125 20 is_stmt 1 view .LVU113
+ 451              	.LBB51:
+ 126:HvMessage.h   ****   return (index < msg_getNumElements(m)) ? (msg_getType(m,index) == HV_MSG_FLOAT) : false;
+ 452              		.loc 2 126 3 view .LVU114
+ 453              	.LBB52:
+ 454              	.LBI52:
+  90:HvMessage.h   ****   return (int) m->numElements;
+ 455              		.loc 2 90 19 view .LVU115
+ 456              	.LBB53:
+  91:HvMessage.h   **** }
+ 457              		.loc 2 91 3 view .LVU116
+  91:HvMessage.h   **** }
+ 458              		.loc 2 91 3 is_stmt 0 view .LVU117
+ 459              	.LBE53:
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 14
+
+
+ 460              	.LBE52:
+ 461              		.loc 2 126 83 view .LVU118
+ 462 0018 A388     		ldrh	r3, [r4, #4]
+ 463 001a 012B     		cmp	r3, #1
+ 464 001c 0DD8     		bhi	.L39
+ 465              	.LVL41:
+ 466              	.L28:
+ 467              		.loc 2 126 83 view .LVU119
+ 468              	.LBE51:
+ 469              	.LBE50:
+  99:HvTable.c     ****     hTable_resize(o, (int) hv_ceil_f(msg_getFloat(m,1))); // apply ceil to ensure that tables alway
+ 100:HvTable.c     **** 
+ 101:HvTable.c     ****     // send out the new size of the table
+ 102:HvTable.c     ****     HvMessage *n = HV_MESSAGE_ON_STACK(1);
+ 103:HvTable.c     ****     msg_initWithFloat(n, msg_getTimestamp(m), (float) hTable_getSize(o));
+ 104:HvTable.c     ****     sendMessage(_c, 0, n);
+ 105:HvTable.c     ****   }
+ 106:HvTable.c     **** 
+ 107:HvTable.c     ****   else if (msg_compareSymbol(m,0,"mirror")) {
+ 470              		.loc 1 107 8 is_stmt 1 view .LVU120
+ 471              		.loc 1 107 12 is_stmt 0 view .LVU121
+ 472 001e 1B4A     		ldr	r2, .L40+4
+ 473 0020 0021     		movs	r1, #0
+ 474 0022 2046     		mov	r0, r4
+ 475 0024 FFF7FEFF 		bl	msg_compareSymbol
+ 476              	.LVL42:
+ 477              		.loc 1 107 11 view .LVU122
+ 478 0028 20B1     		cbz	r0, .L27
+ 108:HvTable.c     ****     hv_memcpy(o->buffer+o->size, o->buffer, HV_N_SIMD*sizeof(float));
+ 479              		.loc 1 108 5 is_stmt 1 view .LVU123
+ 480 002a 2B68     		ldr	r3, [r5]
+ 481 002c AA68     		ldr	r2, [r5, #8]
+ 482 002e 1968     		ldr	r1, [r3]	@ unaligned
+ 483 0030 43F82210 		str	r1, [r3, r2, lsl #2]	@ unaligned
+ 484              	.L27:
+ 109:HvTable.c     ****   }
+ 110:HvTable.c     **** }
+ 485              		.loc 1 110 1 is_stmt 0 view .LVU124
+ 486 0034 0C37     		adds	r7, r7, #12
+ 487              		.cfi_remember_state
+ 488              		.cfi_def_cfa_offset 20
+ 489 0036 BD46     		mov	sp, r7
+ 490              		.cfi_def_cfa_register 13
+ 491              		@ sp needed
+ 492 0038 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 493              	.LVL43:
+ 494              	.L39:
+ 495              		.cfi_restore_state
+ 496              	.LBB60:
+ 497              	.LBB58:
+ 498              	.LBB54:
+ 499              	.LBI54:
+  99:HvMessage.h   ****   hv_assert(index < msg_getNumElements(m)); // invalid index
+ 500              		.loc 2 99 27 is_stmt 1 view .LVU125
+ 501              	.LBB55:
+ 100:HvMessage.h   ****   return (&(m->elem)+index)->type;
+ 502              		.loc 2 100 3 view .LVU126
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 15
+
+
+ 100:HvMessage.h   ****   return (&(m->elem)+index)->type;
+ 503              		.loc 2 100 3 is_stmt 0 view .LVU127
+ 504              	.LBE55:
+ 505              	.LBE54:
+ 506              	.LBE58:
+ 507              	.LBE60:
+  91:HvMessage.h   **** }
+ 508              		.loc 2 91 3 is_stmt 1 view .LVU128
+ 509              	.LBB61:
+ 510              	.LBB59:
+ 511              	.LBB57:
+ 512              	.LBB56:
+ 101:HvMessage.h   **** }
+ 513              		.loc 2 101 3 view .LVU129
+ 101:HvMessage.h   **** }
+ 514              		.loc 2 101 3 is_stmt 0 view .LVU130
+ 515              	.LBE56:
+ 516              	.LBE57:
+ 517              		.loc 2 126 83 view .LVU131
+ 518 003a 237C     		ldrb	r3, [r4, #16]	@ zero_extendqisi2
+ 519 003c 012B     		cmp	r3, #1
+ 520 003e EED1     		bne	.L28
+ 521              	.LVL44:
+ 522              		.loc 2 126 83 view .LVU132
+ 523              	.LBE59:
+ 524              	.LBE61:
+ 525              	.LBB62:
+ 526              	.LBB63:
+ 122:HvMessage.h   **** }
+ 527              		.loc 2 122 3 is_stmt 1 view .LVU133
+ 122:HvMessage.h   **** }
+ 528              		.loc 2 122 34 is_stmt 0 view .LVU134
+ 529 0040 D4ED057A 		vldr.32	s15, [r4, #20]
+ 530              	.LVL45:
+ 122:HvMessage.h   **** }
+ 531              		.loc 2 122 34 view .LVU135
+ 532              	.LBE63:
+ 533              	.LBE62:
+  98:HvTable.c     ****     hTable_resize(o, (int) hv_ceil_f(msg_getFloat(m,1))); // apply ceil to ensure that tables alway
+ 534              		.loc 1 98 59 view .LVU136
+ 535 0044 F5EEC07A 		vcmpe.f32	s15, #0
+ 536 0048 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 537 004c E7DB     		blt	.L28
+ 538              	.LBB64:
+  99:HvTable.c     **** 
+ 539              		.loc 1 99 5 is_stmt 1 view .LVU137
+ 540              	.LVL46:
+  99:HvTable.c     **** 
+ 541              		.loc 1 99 5 is_stmt 0 view .LVU138
+ 542              	.LBE64:
+ 121:HvMessage.h   ****   return (&(m->elem)+index)->data.f;
+ 543              		.loc 2 121 3 is_stmt 1 view .LVU139
+  91:HvMessage.h   **** }
+ 544              		.loc 2 91 3 view .LVU140
+ 122:HvMessage.h   **** }
+ 545              		.loc 2 122 3 view .LVU141
+ 546              	.LBB69:
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 16
+
+
+  99:HvTable.c     **** 
+ 547              		.loc 1 99 28 is_stmt 0 view .LVU142
+ 548 004e FAFE677A 		vrintp.f32	s15, s15
+  99:HvTable.c     **** 
+ 549              		.loc 1 99 5 view .LVU143
+ 550 0052 FDEEE77A 		vcvt.s32.f32	s15, s15
+ 551 0056 2846     		mov	r0, r5
+ 552 0058 17EE901A 		vmov	r1, s15	@ int
+ 553 005c FFF7FEFF 		bl	hTable_resize
+ 554              	.LVL47:
+ 102:HvTable.c     ****     msg_initWithFloat(n, msg_getTimestamp(m), (float) hTable_getSize(o));
+ 555              		.loc 1 102 5 is_stmt 1 view .LVU144
+ 102:HvTable.c     ****     msg_initWithFloat(n, msg_getTimestamp(m), (float) hTable_getSize(o));
+ 556              		.loc 1 102 5 is_stmt 0 view .LVU145
+ 557              	.LBE69:
+  58:HvMessage.h   ****   return sizeof(HvMessage) + ((numElements-1) * sizeof(Element));
+ 558              		.loc 2 58 3 is_stmt 1 view .LVU146
+  59:HvMessage.h   **** }
+ 559              		.loc 2 59 3 view .LVU147
+ 560              	.LBB70:
+ 102:HvTable.c     ****     msg_initWithFloat(n, msg_getTimestamp(m), (float) hTable_getSize(o));
+ 561              		.loc 1 102 20 is_stmt 0 view .LVU148
+ 562 0060 84B0     		sub	sp, sp, #16
+ 103:HvTable.c     ****     sendMessage(_c, 0, n);
+ 563              		.loc 1 103 5 view .LVU149
+ 564 0062 95ED020A 		vldr.32	s0, [r5, #8]	@ int
+ 102:HvTable.c     ****     msg_initWithFloat(n, msg_getTimestamp(m), (float) hTable_getSize(o));
+ 565              		.loc 1 102 20 view .LVU150
+ 566 0066 6A46     		mov	r2, sp
+ 567              	.LVL48:
+ 103:HvTable.c     ****     sendMessage(_c, 0, n);
+ 568              		.loc 1 103 5 is_stmt 1 view .LVU151
+ 569              	.LBB65:
+ 570              	.LBI65:
+  82:HvMessage.h   ****   return m->timestamp;
+ 571              		.loc 2 82 27 view .LVU152
+ 572              	.LBB66:
+  83:HvMessage.h   **** }
+ 573              		.loc 2 83 3 view .LVU153
+  83:HvMessage.h   **** }
+ 574              		.loc 2 83 3 is_stmt 0 view .LVU154
+ 575              	.LBE66:
+ 576              	.LBE65:
+ 577              	.LBB67:
+ 578              	.LBI67:
+ 579              		.file 3 "HvTable.h"
+   1:HvTable.h     **** /**
+   2:HvTable.h     ****  * Copyright (c) 2014-2018 Enzien Audio Ltd.
+   3:HvTable.h     ****  *
+   4:HvTable.h     ****  * Permission to use, copy, modify, and/or distribute this software for any
+   5:HvTable.h     ****  * purpose with or without fee is hereby granted, provided that the above
+   6:HvTable.h     ****  * copyright notice and this permission notice appear in all copies.
+   7:HvTable.h     ****  *
+   8:HvTable.h     ****  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+   9:HvTable.h     ****  * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  10:HvTable.h     ****  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  11:HvTable.h     ****  * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 17
+
+
+  12:HvTable.h     ****  * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  13:HvTable.h     ****  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  14:HvTable.h     ****  * PERFORMANCE OF THIS SOFTWARE.
+  15:HvTable.h     ****  */
+  16:HvTable.h     **** 
+  17:HvTable.h     **** #ifndef _HEAVY_TABLE_H_
+  18:HvTable.h     **** #define _HEAVY_TABLE_H_
+  19:HvTable.h     **** 
+  20:HvTable.h     **** #include "HvHeavy.h"
+  21:HvTable.h     **** #include "HvUtils.h"
+  22:HvTable.h     **** 
+  23:HvTable.h     **** #ifdef __cplusplus
+  24:HvTable.h     **** extern "C" {
+  25:HvTable.h     **** #endif
+  26:HvTable.h     **** 
+  27:HvTable.h     **** typedef struct HvTable {
+  28:HvTable.h     ****   float *buffer;
+  29:HvTable.h     ****   // the number of values that the table is requested to have
+  30:HvTable.h     ****   hv_uint32_t length;
+  31:HvTable.h     **** 
+  32:HvTable.h     ****   // the number of usable values that the table actually has
+  33:HvTable.h     ****   // this is always an even multiple of HV_N_SIMD
+  34:HvTable.h     ****   hv_uint32_t size;
+  35:HvTable.h     **** 
+  36:HvTable.h     ****   // Note that the true size of the table is (size + HV_N_SIMD),
+  37:HvTable.h     ****   // with the trailing values used by the system, e.g. to create a circular
+  38:HvTable.h     ****   // buffer
+  39:HvTable.h     ****   hv_uint32_t allocated;
+  40:HvTable.h     **** 
+  41:HvTable.h     ****   hv_uint32_t head; // the most recently written point
+  42:HvTable.h     **** } HvTable;
+  43:HvTable.h     **** 
+  44:HvTable.h     **** hv_size_t hTable_init(HvTable *o, int length);
+  45:HvTable.h     **** 
+  46:HvTable.h     **** hv_size_t hTable_initWithData(HvTable *o, int length, const float *data);
+  47:HvTable.h     **** 
+  48:HvTable.h     **** hv_size_t hTable_initWithFinalData(HvTable *o, int length, float *data);
+  49:HvTable.h     **** 
+  50:HvTable.h     **** void hTable_free(HvTable *o);
+  51:HvTable.h     **** 
+  52:HvTable.h     **** int hTable_resize(HvTable *o, hv_uint32_t newLength);
+  53:HvTable.h     **** 
+  54:HvTable.h     **** void hTable_onMessage(HeavyContextInterface *_c, HvTable *o, int letIn, const HvMessage *m,
+  55:HvTable.h     ****     void (*sendMessage)(HeavyContextInterface *, int, const HvMessage *));
+  56:HvTable.h     **** 
+  57:HvTable.h     **** static inline float *hTable_getBuffer(HvTable *o) {
+  58:HvTable.h     ****   return o->buffer;
+  59:HvTable.h     **** }
+  60:HvTable.h     **** 
+  61:HvTable.h     **** // the user-requested length of the table (number of floats)
+  62:HvTable.h     **** static inline hv_uint32_t hTable_getLength(HvTable *o) {
+  63:HvTable.h     ****   return o->length;
+  64:HvTable.h     **** }
+  65:HvTable.h     **** 
+  66:HvTable.h     **** // the usable length of the table (an even multiple of HV_N_SIMD)
+  67:HvTable.h     **** static inline hv_uint32_t hTable_getSize(HvTable *o) {
+ 580              		.loc 3 67 27 is_stmt 1 view .LVU155
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 18
+
+
+ 581              	.LBB68:
+  68:HvTable.h     ****   return o->size;
+ 582              		.loc 3 68 3 view .LVU156
+ 583              		.loc 3 68 3 is_stmt 0 view .LVU157
+ 584              	.LBE68:
+ 585              	.LBE67:
+ 103:HvTable.c     ****     sendMessage(_c, 0, n);
+ 586              		.loc 1 103 5 view .LVU158
+ 587 0068 2168     		ldr	r1, [r4]
+ 588 006a B8EE400A 		vcvt.f32.u32	s0, s0
+ 589 006e 1046     		mov	r0, r2
+ 590 0070 7A60     		str	r2, [r7, #4]
+ 591 0072 FFF7FEFF 		bl	msg_initWithFloat
+ 592              	.LVL49:
+ 104:HvTable.c     ****   }
+ 593              		.loc 1 104 5 is_stmt 1 view .LVU159
+ 594 0076 7A68     		ldr	r2, [r7, #4]
+ 595 0078 3B6A     		ldr	r3, [r7, #32]
+ 596 007a 0021     		movs	r1, #0
+ 597 007c 3046     		mov	r0, r6
+ 598 007e 9847     		blx	r3
+ 599              	.LVL50:
+ 600              	.LBE70:
+ 601              		.loc 1 110 1 is_stmt 0 view .LVU160
+ 602 0080 0C37     		adds	r7, r7, #12
+ 603              		.cfi_def_cfa_offset 20
+ 604 0082 BD46     		mov	sp, r7
+ 605              		.cfi_def_cfa_register 13
+ 606              	.LVL51:
+ 607              		.loc 1 110 1 view .LVU161
+ 608              		@ sp needed
+ 609 0084 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 610              	.LVL52:
+ 611              	.L41:
+ 612              		.loc 1 110 1 view .LVU162
+ 613 0086 00BF     		.align	2
+ 614              	.L40:
+ 615 0088 00000000 		.word	.LC3
+ 616 008c 08000000 		.word	.LC4
+ 617              		.cfi_endproc
+ 618              	.LFE373:
+ 620              		.section	.rodata.__func__.3,"a"
+ 621              		.align	2
+ 622              		.set	.LANCHOR2,. + 0
+ 625              	__func__.3:
+ 626 0000 68546162 		.ascii	"hTable_resize\000"
+ 626      6C655F72 
+ 626      6573697A 
+ 626      6500
+ 627              		.section	.rodata.__func__.4,"a"
+ 628              		.align	2
+ 629              		.set	.LANCHOR1,. + 0
+ 632              	__func__.4:
+ 633 0000 68546162 		.ascii	"hTable_initWithData\000"
+ 633      6C655F69 
+ 633      6E697457 
+ 633      69746844 
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 19
+
+
+ 633      61746100 
+ 634              		.section	.rodata.__func__.5,"a"
+ 635              		.align	2
+ 636              		.set	.LANCHOR0,. + 0
+ 639              	__func__.5:
+ 640 0000 68546162 		.ascii	"hTable_init\000"
+ 640      6C655F69 
+ 640      6E697400 
+ 641              		.text
+ 642              	.Letext0:
+ 643              		.file 4 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 644              		.file 5 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 645              		.file 6 "c:\\program files\\daisytoolchain\\lib\\gcc\\arm-none-eabi\\10.2.1\\include\\stddef.h"
+ 646              		.file 7 "HvHeavy.h"
+ 647              		.file 8 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\stdlib.h"
+ 648              		.file 9 "c:\\program files\\daisytoolchain\\arm-none-eabi\\include\\assert.h"
+ 649              		.file 10 "<built-in>"
+ARM GAS  C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s 			page 20
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 HvTable.c
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:17     .rodata.hTable_init.str1.4:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:24     .text.hTable_init:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:33     .text.hTable_init:00000000 hTable_init
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:98     .text.hTable_init:00000030 $d
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:105    .text.hTable_initWithData:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:113    .text.hTable_initWithData:00000000 hTable_initWithData
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:185    .text.hTable_initWithData:0000003c $d
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:192    .text.hTable_initWithFinalData:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:200    .text.hTable_initWithFinalData:00000000 hTable_initWithFinalData
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:242    .text.hTable_free:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:250    .text.hTable_free:00000000 hTable_free
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:268    .rodata.hTable_resize.str1.4:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:272    .text.hTable_resize:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:280    .text.hTable_resize:00000000 hTable_resize
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:384    .text.hTable_resize:00000060 $d
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:391    .rodata.hTable_onMessage.str1.4:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:398    .text.hTable_onMessage:00000000 $t
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:406    .text.hTable_onMessage:00000000 hTable_onMessage
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:615    .text.hTable_onMessage:00000088 $d
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:621    .rodata.__func__.3:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:625    .rodata.__func__.3:00000000 __func__.3
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:628    .rodata.__func__.4:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:632    .rodata.__func__.4:00000000 __func__.4
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:635    .rodata.__func__.5:00000000 $d
+C:\Users\bobka\AppData\Local\Temp\ccr4UUyh.s:639    .rodata.__func__.5:00000000 __func__.5
+
+UNDEFINED SYMBOLS
+calloc
+__assert_func
+memcpy
+free
+realloc
+memset
+msg_compareSymbol
+msg_initWithFloat
