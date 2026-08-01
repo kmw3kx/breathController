@@ -27,7 +27,11 @@ They also seem to use the digital pin numberings for analog ins, so 15 instead o
 
 Switch has a pullup resistor functionality built into it, but it is unclear if encoder does or not. 
 
-I was having an issue with the analog inputs not printing to serial correctly when I was trying to code it in plugdata. Still working on a solution.
+I was having an issue with the analog inputs not printing to serial correctly when I was trying to code it in plugdata. The issue was that the 2 grounds needed to be tied together. 
+
+I also wasn't able to get the cap touch working, so I decided to pivot back to using the mpr121. I originally was trying to avoid it since it's extra money, but... it will just make everything better. It saves the processing power & just simplifies everything.
+
+
 
 ## Prospectus Submission for STS 4500, Summer 2026
 
