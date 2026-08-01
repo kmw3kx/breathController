@@ -6,36 +6,33 @@
     },
 	"display": {},
 	"audio": {
-    "channels": 3
+    "channels": 2
   },
+  "parents": {
+		"mpr121": {
+			"component": "Mpr121",
+			"address": "{0x5A}",
+			"pin": {
+				"scl": 11,
+				"sda": 12
+			}
+		}
+	},
 	"components": {
-		"capin1": {
-			"component": "GateIn",
-			"pin": 13
-		},
-        "capout1": {
-			"component": "GateOut",
-			"pin": 9
-		},
-        "capin2": {
-			"component": "GateIn",
-			"pin": 12
-		},
-        "capout2": {
-			"component": "GateOut",
-			"pin": 14
-		},
-        "capin3": {
-			"component": "GateIn",
-			"pin": 11
-		},
-        "capout3": {
-			"component": "GateOut",
-			"pin": 10
+		"led":{
+			"component": "UserLed"
 		},
 		"breath": {
 			"component": "AnalogControl",
+			"pin": 16
+		},
+		"joyx": {
+			"component": "AnalogControl",
 			"pin": 17
+		},
+		"joyy": {
+			"component": "AnalogControl",
+			"pin": 18
 		},
 		"encoder": {
 			"component": "Encoder",

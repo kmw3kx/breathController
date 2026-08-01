@@ -31,6 +31,16 @@ I was having an issue with the analog inputs not printing to serial correctly wh
 
 I also wasn't able to get the cap touch working, so I decided to pivot back to using the mpr121. I originally was trying to avoid it since it's extra money, but... it will just make everything better. It saves the processing power & just simplifies everything.
 
+[Here's](https://github.com/jonwaterschoot/plugdata-daisy-simple/tree/main) a good repo for daisy plugdata stuff.
+
+[Here's](https://wasted-audio.github.io/hvcc/latest/generators/daisy/) the official stuff for daisy.
+
+[Here's the current daisy_json guide](https://github.com/Wasted-Audio/hvcc/blob/develop/docs/generators/daisy_json.md)
+
+I'm having some trouble getting the daisy to work with the MPR121 in plugdata. The patchsizes are starting to get very big, so I think I need to start using the bootloader.
+https://community.daisy.audio/t/small-big-and-huge/9176/2
+
+Working within MIDI seems to be more reliable than with serial. Press the boot button after resetting to keep the daisy in bootloader mode. I'm now having an issue with finding it as a midi device tho. Let me troubleshoot with my mpkmini.
 
 
 ## Prospectus Submission for STS 4500, Summer 2026
