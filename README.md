@@ -42,6 +42,12 @@ https://community.daisy.audio/t/small-big-and-huge/9176/2
 
 Working within MIDI seems to be more reliable than with serial. Press the boot button after resetting to keep the daisy in bootloader mode. I'm now having an issue with finding it as a midi device tho. Let me troubleshoot with my mpkmini.
 
+8/4/26 - New day, new toolchain apparently. Printing is now working, so let's try and make something happen.
+
+![DaisySeed3Pins](image.png)
+
+Idk why it's taken me this long to add this to my repo.
+
 
 ## Prospectus Submission for STS 4500, Summer 2026
 
