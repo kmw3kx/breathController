@@ -85,7 +85,7 @@
 #X obj 330 433 dac~;
 #X obj 190 253 mtof~;
 #X obj 351 198 print;
-#N canvas 0 50 450 300 touch 0;
+#N canvas 0 50 450 300 touch 1;
 #X obj 69 95 change;
 #X obj 69 69 r touch_ch1 @hv_param;
 #X obj 239 95 change;
