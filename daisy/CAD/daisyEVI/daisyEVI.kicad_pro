@@ -409,22 +409,11 @@
     "reuse_designators": true,
     "subpart_first_id": 65,
     "subpart_id_separator": 0,
-    "top_level_sheets": [
-      {
-        "filename": "daisyEVI.kicad_sch",
-        "name": "Root",
-        "uuid": "559eeaef-0861-4dd1-8fd8-7f27049152b3"
-      }
-    ],
+    "top_level_sheets": [],
     "used_designators": "",
     "variants": []
   },
-  "sheets": [
-    [
-      "559eeaef-0861-4dd1-8fd8-7f27049152b3",
-      "Root"
-    ]
-  ],
+  "sheets": [],
   "text_variables": {},
   "tuning_profiles": {
     "meta": {
