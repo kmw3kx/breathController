@@ -1,0 +1,51 @@
+{
+	"name": "protodaisyevi",
+	"som": "seed",
+	"parents": {
+		"touch": {
+			"component": "Mpr121",
+			"pin": {
+				"scl": 11,
+				"sda": 12
+			}
+		}
+	},
+	"defines": {
+		"HAS_MIDI": 1
+    },
+	"display": {
+	  },
+	"audio": {
+    "channels": 2
+  },
+	"components": {
+		"led":{
+			"component": "UserLed"
+		},
+		"breath": {
+			"component": "AnalogControl",
+			"pin": 16
+		},
+		"joyx": {
+			"component": "AnalogControl",
+			"pin": 17
+		},
+		"joyy": {
+			"component": "AnalogControl",
+			"pin": 18
+		},
+		"encoder": {
+			"component": "Encoder",
+			"pin": {
+				"a": 5,
+				"b": 4,
+				"click": 3
+			}
+		}
+	},
+	"aliases": {
+		"encswitch": "encoder_rise",
+		"enp": "encoder_press",
+		"press": "encoder_press"
+	}
+}
