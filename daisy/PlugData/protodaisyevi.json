@@ -24,15 +24,15 @@
 		},
 		"breath": {
 			"component": "AnalogControl",
-			"pin": 16
+			"pin": 15
 		},
 		"joyx": {
 			"component": "AnalogControl",
-			"pin": 17
+			"pin": 16
 		},
 		"joyy": {
 			"component": "AnalogControl",
-			"pin": 18
+			"pin": 17
 		},
 		"encoder": {
 			"component": "Encoder",
