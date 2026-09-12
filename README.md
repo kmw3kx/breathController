@@ -3,7 +3,7 @@
 This is my personal repository for my wind controller project in development to catalog my work.
 
 ## Table of Contents
-- [Daisy EVI Progress, Summer 2026](#daisy-evi-progress-summer-2026)
+- [Daisy EVI Progress](#daisy-evi-progress)
 - [Prospectus Submission for STS 4500, Summer 2026](#prospectus-submission-for-sts-4500-summer-2026)
 - [Summer 2026 Personal Work](#summer-2026-personal-work)
 - [Submission for Final Project, MUSI 4610, Spring 2026](#submission-for-final-project-musi-4610-spring-2026)
@@ -14,7 +14,9 @@ This is my personal repository for my wind controller project in development to 
 - [Future Improvements](#future-improvements)
 - [Work Log](#work-Log)
 
-## Daisy EVI Progress, Summer 2026
+## Daisy EVI Progress
+
+### Summer 2026
 7/20/26 - I have been continuing development of this project in between taking classes and working at my summer internship. The current model is running off of a daisy microcontroller. I have also been developing a 3D-printed needle valve to be able to more finely adjust back pressure of the instrument. There have been thoughts of creating custom pcb's for this project, but I am thinking of first making a prototype before trying to generate something that could be easily recreated. Hence, I am also trying other methods of fabrication beyond 3D printing, such as vacuum thermal forming, woodworking, and perfboard. I am also pivoting from an fsr to using a joystick attached to the mouthpiece, as there are issues with 3D printing food-safe mouthpieces.
 
 (Post pic of prototype here)
@@ -48,6 +50,15 @@ Working within MIDI seems to be more reliable than with serial. Press the boot b
 
 Idk why it's taken me this long to add this to my repo.
 
+### Fall 2026
+
+9/12/26 - Been busy with the start of the semester! Unfortunately, it is looking like this won't be my primary engineering capstone, but it's very likely I will be working on something instrument-related, which will give me skills that I could then incorporate into this project. I am also planning on continuing the development for this project this semester, with a hopeful completion of a DIY version available in December this year. My hope is that I can rope this in for my capstone group somehow, or at least be able to fulfill my prospectus topics, with a possible broadening to mapping sensor inputs to musical expression. We'll see. 
+
+Anyways, I have a prototype done! 
+
+![PrototypeDaisyEVIClean_Speaker](PrototypeDaisyEVIClean_Speaker.jpg)
+
+I chose a completely different design process for this model. Since I was hoping it could be a capstone, I wanted to prioritize making a mockup by hand instead of getting trapped in CAD. 
 
 ## Prospectus Submission for STS 4500, Summer 2026
 
