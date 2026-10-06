@@ -60,11 +60,22 @@ Anyways, I have a prototype done!
 
 I chose a completely different design process for this model. Since I was hoping it could be a capstone, I wanted to prioritize making a mockup by hand instead of getting trapped in CAD. 
 
+I have been making some patches for my composition class, but I want to make a better functioning version so I can play it more consistently. I want to keep updating this repo, but I want to have more to show. 
+
+I want to add a touch slider, better joystick mouthpiece assembly, and a display. I'm making progress on the display, but the OLED is still not working 100%
+![Oled](image.png)
+
+The next major update will likely come once this new hardware is done. Here's a sneak peek tho: 
+
+![sippuffJoy](image-1.png)
+
 ## Prospectus Submission for STS 4500, Summer 2026
 
 The PDF can be found under `/media` or by clicking [here](media/ProspectusFINAL_Kammauff.pdf)
 
 The Prospectus is a graduation requirement for the engineering school @ UVA, but doesn't guarantee that the corresponding capstone will be taken on, due to it being a group project. I am hopeful, but I won't know come fall.
+
+(Update: my capstone is not this unfortunately. It is still being clarified, but it will likely be a electric guitar)
 
 ## Summer 2026 Personal Work
 
